@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="hu">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Könyvelői nézet – Trippo</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  .month { cursor: pointer; display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+  .month b { font-size: 18px; }
+  .amount { font-size: 22px; font-weight: 800; white-space: nowrap; }
+  .details { display: none; margin-top: 12px; }
+  .open .details { display: block; }
+  .row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+  button { font: inherit; border: 1px solid var(--line); background: var(--card); color: var(--text); border-radius: 10px; padding: 8px 12px; cursor: pointer; }
+  .hash { font-family: ui-monospace, Menlo, monospace; font-size: 11px; word-break: break-all; color: var(--muted); }
+  @media print { header.top, .row, nav, #intro { display: none; } .details { display: block !important; } .card { break-inside: avoid; } }
+</style>
+</head>
+<body><main>
+<header class="top"><span class="logo"></span><a href="index.html">Trippo</a></header>
+<h1>Könyvelői nézet</h1>
+<p id="intro" class="muted">Csak olvasható nézet az ügyfeled lezárt hónapjairól. A lezárt hónapok utólag nem módosíthatók; az ellenőrző kód igazolja, hogy az adatok a lezárás óta nem változtak.</p>
+<div id="out"><p class="muted">Betöltés…</p></div>
+<nav class="links"><a href="adatvedelem.html">Adatkezelési tájékoztató</a><a href="aszf.html">Felhasználási feltételek</a></nav>
+<script>
+const FN = 'https://rudnmzhfgnynlmjdrwoy.supabase.co/functions/v1/accountant';
+const out = document.getElementById('out');
+const huf = (n) => (n == null ? '–' : Math.round(n).toLocaleString('hu-HU') + ' Ft');
+const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const monthName = (m) => new Date(m + 'T00:00:00').toLocaleDateString('hu-HU', { year: 'numeric', month: 'long' });
+
+function csv(close) {
+  const s = close.snapshot || {};
+  const rows = [['Dátum', 'Idő', 'Honnan', 'Hová', 'Cél', 'Partner', 'Km', 'Üzemanyag (Ft)', 'Normaköltség (Ft)']];
+  for (const l of s.lines || []) rows.push([l.date, l.time, l.from, l.to, l.purpose, l.partner, l.km, l.fuelHuf, l.amortizationHuf]);
+  rows.push(['Összesen', '', '', '', '', '', s.business_km, s.fuel_cost_huf, s.amortization_huf]);
+  for (const e of s.expenses || []) rows.push([e.date, e.kind, e.trip, '', e.note, '', '', e.amountHuf, '']);
+  if (s.per_diem) rows.push(['Napidíj', s.per_diem.days.length + ' nap', '', '', '', '', '', s.per_diem.totalHuf, '']);
+  const text = '﻿' + rows.map((r) => r.map((v) => '"' + String(v ?? '').replace(/"/g, '""') + '"').join(';')).join('\r\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([text], { type: 'text/csv;charset=utf-8' }));
+  a.download = 'utnyilvantartas-' + close.month.slice(0, 7) + '-' + ((close.vehicles && close.vehicles.plate) || '') + '.csv';
+  a.click();
+}
+
+function render(closes) {
+  if (!closes.length) { out.innerHTML = '<p>Még nincs lezárt hónap.</p>'; return; }
+  out.innerHTML = '';
+  for (const c of closes) {
+    const s = c.snapshot || {};
+    const people = s.people || {};
+    const extra = (s.per_diem ? s.per_diem.totalHuf : 0) + (s.expenses_huf || 0);
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML =
+      '<div class="month"><div><b>' + esc(monthName(c.month)) + '</b><br><span class="muted">' + esc(c.vehicles && c.vehicles.plate) + ' · ' + esc(people.driverName) + ' · ' + (s.business_km ?? 0) + ' üzleti km</span></div>' +
+      '<div class="amount">' + huf(s.total_huf) + '</div></div>' +
+      '<div class="details">' +
+      '<p class="muted">Norma: ' + esc(s.norm_l_per_100km) + ' l/100 km · NAV-ár: ' + esc(s.price_label) + ' · ' + esc(s.general_norm_huf_per_km) + ' Ft/km<br>' +
+      'Km-óra: ' + esc(c.start_odometer) + ' → ' + esc(c.end_odometer) + ' · Lezárva: ' + new Date(c.closed_at).toLocaleString('hu-HU') +
+      (extra ? '<br>Napidíj és számla alapján: ' + huf(extra) : '') + '</p>' +
+      '<table><thead><tr><th>Dátum</th><th>Honnan → Hová</th><th>Cél / partner</th><th>Km</th></tr></thead><tbody>' +
+      (s.lines || []).map((l) => '<tr><td>' + esc(l.date) + '<br><span class="muted">' + esc(l.time) + '</span></td><td>' + esc(l.from) + ' → ' + esc(l.to) + '</td><td>' + esc(l.purpose) + (l.partner ? ' · ' + esc(l.partner) : '') + '</td><td>' + esc(l.km) + '</td></tr>').join('') +
+      '</tbody></table>' +
+      '<p class="hash">Ellenőrző kód (SHA-256): ' + esc(c.snapshot_hash) + '</p>' +
+      '<div class="row"><button data-csv>Letöltés Excelbe (CSV)</button><button onclick="window.print()">Nyomtatás / PDF</button></div>' +
+      '</div>';
+    card.querySelector('.month').addEventListener('click', () => card.classList.toggle('open'));
+    card.querySelector('[data-csv]').addEventListener('click', () => csv(c));
+    out.appendChild(card);
+  }
+}
+
+const token = location.hash.slice(1);
+if (!/^[0-9a-f]{64}$/.test(token)) {
+  out.innerHTML = '<p>Ez a link hiányos. Kérd el újra az ügyfeledtől a Trippo könyvelői linkjét.</p>';
+} else {
+  fetch(FN, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token }) })
+    .then((r) => r.json().then((j) => ({ ok: r.ok, j })))
+    .then(({ ok, j }) => (ok ? render(j.closes || []) : (out.innerHTML = '<p>Ezt a linket az ügyfeled visszavonta, vagy lejárt.</p>')))
+    .catch(() => (out.innerHTML = '<p>Nem sikerült betölteni. Ellenőrizd az internetkapcsolatot.</p>'));
+}
+</script>
+</main></body>
+</html>

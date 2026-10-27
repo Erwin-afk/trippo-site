@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="hu">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Adatkezelési tájékoztató – Trippo</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body><main>
+<header class="top"><span class="logo"></span><a href="index.html">Trippo</a></header>
+<h1>Adatkezelési tájékoztató</h1>
+<p class="muted">Hatályos: <span class="todo">[2026. ___ __.]</span> · Utolsó módosítás: 2026. október 27.</p>
+
+<p>Ez a tájékoztató elmondja, milyen adatokat kezel a Trippo útnyilvántartó alkalmazás (a továbbiakban: „Trippo”),
+miért, meddig, kinek adjuk át, és milyen jogaid vannak. Az EU általános adatvédelmi rendelete (GDPR, 2016/679)
+és az információs önrendelkezési jogról szóló 2011. évi CXII. törvény (Infotv.) alapján készült.</p>
+
+<h2>1. Ki kezeli az adataidat?</h2>
+<div class="card">
+<p><b>Adatkezelő:</b> <span class="todo">[ÜZEMELTETŐ NEVE / CÉGNEVE]</span><br>
+<b>Székhely:</b> <span class="todo">[CÍM]</span><br>
+<b>Adószám / nyilvántartási szám:</b> <span class="todo">[ADÓSZÁM]</span><br>
+<b>E-mail:</b> <span class="todo">[KAPCSOLATI E-MAIL]</span></p>
+<p class="muted">Adatvédelmi tisztviselő kinevezésére nem vagyunk kötelesek (GDPR 37. cikk).</p>
+</div>
+
+<h2>2. Milyen adatokat kezelünk és miért?</h2>
+<table>
+<tr><th>Adat</th><th>Cél</th><th>Jogalap</th></tr>
+<tr><td>E-mail-cím, Apple-azonosító (ha Apple-lel lépsz be)</td><td>Fiók, belépés, kapcsolattartás</td><td>Szerződés teljesítése – GDPR 6. cikk (1) b)</td></tr>
+<tr><td>Név, munkáltató neve (amit megadsz)</td><td>Az útnyilvántartáson és a kiküldetési rendelvényen való feltüntetés</td><td>Szerződés teljesítése – 6. cikk (1) b)</td></tr>
+<tr><td>Autó adatai: rendszám, típus, üzemanyag, hengerűrtartalom, km-óra állások</td><td>A NAV-szabályok szerinti költségtérítés kiszámítása, útnyilvántartás</td><td>Szerződés teljesítése – 6. cikk (1) b)</td></tr>
+<tr><td><b>Helyadatok</b>: az utak kezdő- és végpontja, időpontja, hossza, útvonala, megállók, sebesség</td><td>Az utak automatikus rögzítése és dokumentálása</td><td>Szerződés teljesítése – 6. cikk (1) b); a háttérbeli helymeghatározást a telefonodon kifejezetten engedélyezned kell, és bármikor kikapcsolhatod</td></tr>
+<tr><td>Út célja, felkeresett partner neve, megjegyzések</td><td>A NAV által előírt útnyilvántartási adatok</td><td>Szerződés teljesítése – 6. cikk (1) b)</td></tr>
+<tr><td>Mentett helyek (otthon, munkahely, ügyfelek)</td><td>Automatikus besorolás</td><td>Szerződés teljesítése – 6. cikk (1) b)</td></tr>
+<tr><td>Tankolási blokkok és km-óra fotói, a blokk adatai</td><td>Költségek nyilvántartása, a km-óra állás igazolása</td><td>Szerződés teljesítése – 6. cikk (1) b)</td></tr>
+<tr><td>Előfizetés állapota (Apple vásárlási azonosító)</td><td>Pro funkciók elérése</td><td>Szerződés teljesítése – 6. cikk (1) b)</td></tr>
+<tr><td>Lezárt hónapok, azok ellenőrző kódja és a változásnapló</td><td>A lezárt hónapok utólagos módosíthatatlanságának igazolása</td><td>Szerződés teljesítése – 6. cikk (1) b)</td></tr>
+</table>
+<p><b>Ami a telefonodon marad:</b> a naptárad eseményeit csak a telefonon olvassuk (ha engedélyezed), hogy a találkozókat az utakhoz rendeljük;
+a naptárt nem töltjük fel. A magánútként megjelölt utak útvonalát és megállóit nem töltjük fel a felhőbe, csak a km-t és az időpontot.</p>
+<p>Nem használunk hirdetési azonosítót, nem követünk más appokban vagy weboldalakon, és nem adjuk el az adataidat.</p>
+
+<h2>3. Kiknek adjuk át az adatokat (adatfeldolgozók)?</h2>
+<table>
+<tr><th>Szolgáltató</th><th>Feladat</th><th>Hol</th></tr>
+<tr><td>Supabase Inc.</td><td>Adatbázis, belépés, fájltárolás (a fiókod összes adata)</td><td>EU – Frankfurt (AWS eu-central-1)</td></tr>
+<tr><td>Resend Inc.</td><td>Belépőkódok e-mailben</td><td>USA – általános szerződési feltételek (SCC)</td></tr>
+<tr><td>Apple Inc. / Apple Distribution International</td><td>Alkalmazásbolt, előfizetés fizetése, Apple-belépés, térkép</td><td>Írország / USA</td></tr>
+<tr><td>RevenueCat Inc.</td><td>Előfizetés állapotának kezelése (anonim felhasználói azonosító)</td><td>USA – SCC</td></tr>
+<tr><td>Anthropic PBC</td><td>Csak Pro előfizetésnél, és csak ha fotót olvastatsz: a fotó automatikus kiolvasása (km-óra, blokk)</td><td>USA – SCC</td></tr>
+<tr><td>650 Industries Inc. (Expo)</td><td>Az alkalmazás frissítéseinek kiszolgálása (személyes adatot nem kap)</td><td>USA</td></tr>
+<tr><td><span class="todo">[Útvonal-szerver üzemeltetője, pl. Hetzner Online GmbH]</span></td><td>Az útvonal úthálózatra illesztése, útvonaltervezés</td><td>EU – Németország</td></tr>
+</table>
+<p>Az EU-n kívüli (USA) adattovábbítás az Európai Bizottság által elfogadott általános szerződési feltételek (GDPR 46. cikk)
+vagy az EU–USA adatvédelmi keretrendszer alapján történik.</p>
+<p>Ha a könyvelődnek küldesz riportot, azt te küldöd a saját e-mail-fiókodból; a címzett önálló adatkezelő lesz.
+Ha <b>könyvelői linket</b> hozol létre, a link birtokosa böngészőben látja a lezárt hónapjaid adatait (összegek, utak, célok, partnerek, km-óra, ellenőrző kód) – csak olvasásra, amíg vissza nem vonod. A linket mi nem tároljuk, csak egy ellenőrző lenyomatát.</p>
+
+<h2>4. Meddig őrizzük?</h2>
+<ul>
+<li>A fiókod adatait, amíg a fiókod létezik. A fiók törlésével (Beállítások › Adataim letöltése és fiók törlése) azonnal törlünk mindent: utakat, autókat, lezárt hónapokat, helyeket, blokkokat, fotókat.</li>
+<li>A biztonsági mentésekből legfeljebb <span class="todo">[7]</span> napon belül tűnnek el az adatok.</li>
+<li><b>Fontos:</b> az útnyilvántartást az adóhatóság az adó megállapításához való jog elévüléséig (általában 5 évig) kérheti tőled. Törlés előtt töltsd le az adataidat és a lezárt hónapok PDF-jeit – a megőrzés a te kötelezettséged.</li>
+</ul>
+
+<h2>5. A jogaid</h2>
+<ul>
+<li><b>Hozzáférés és adathordozhatóság:</b> minden adatodat letöltheted az appban (JSON-fájl).</li>
+<li><b>Helyesbítés:</b> az adataidat az appban bármikor javíthatod.</li>
+<li><b>Törlés:</b> a fiókodat és minden adatodat az appban törölheted.</li>
+<li><b>Korlátozás, tiltakozás:</b> írj a fenti e-mail-címre.</li>
+<li><b>Hozzájárulás visszavonása:</b> a helymeghatározást, naptár- és kamerahozzáférést a telefon beállításaiban bármikor kikapcsolhatod.</li>
+</ul>
+<p>Kérésedre egy hónapon belül válaszolunk. Ha úgy érzed, megsértettük a jogaidat, panaszt tehetsz a
+<b>Nemzeti Adatvédelmi és Információszabadság Hatóságnál</b> (NAIH, 1055 Budapest, Falk Miksa utca 9–11.,
+levélcím: 1363 Budapest, Pf. 9., <a href="https://www.naih.hu">www.naih.hu</a>, ugyfelszolgalat@naih.hu), vagy bírósághoz fordulhatsz.</p>
+
+<h2>6. Biztonság</h2>
+<p>Az adatok titkosított kapcsolaton utaznak, a tárolt adatokhoz csak te férsz hozzá (soronkénti hozzáférés-szabályozás),
+a fotók privát tárhelyen vannak. A lezárt hónapok adatait az adatbázis ellenőrző kóddal (SHA-256) védi.</p>
+
+<h2>7. Gyerekek</h2>
+<p>A Trippo 18 éven felülieknek, vállalkozói vagy munkavállalói elszámoláshoz készült.</p>
+
+<h2>8. Változások</h2>
+<p>Ha a tájékoztató lényegesen változik, az appban jelezzük.</p>
+
+<nav class="links"><a href="index.html">Kezdőlap</a><a href="aszf.html">Felhasználási feltételek</a><a href="fiok-torles.html">Fiók törlése</a><a href="tamogatas.html">Támogatás</a></nav>
+</main></body>
+</html>
