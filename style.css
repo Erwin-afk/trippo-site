@@ -5,7 +5,7 @@ body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.6 -app
 main { max-width: 760px; margin: 0 auto; padding: 32px 16px 64px; }
 header.top { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; }
 header.top a { color: var(--text); text-decoration: none; font-weight: 800; font-size: 20px; }
-.logo { width: 36px; height: 36px; border-radius: 10px; background: var(--accent); display: inline-block; }
+.logo { width: 36px; height: 36px; border-radius: 10px; display: inline-block; background: #0A8F6A url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect x='18' y='20' width='64' height='17' rx='8.5' fill='%23fff'/%3E%3Cpath d='M42 36 L58 36 L67 84 L33 84 Z' fill='%23fff'/%3E%3Crect x='48.3' y='50' width='3.4' height='10' fill='%230A8F6A'/%3E%3Crect x='48' y='68' width='4' height='12' fill='%230A8F6A'/%3E%3C/svg%3E") center / cover no-repeat; }
 h1 { font-size: 30px; line-height: 1.2; margin: 0 0 8px; }
 h2 { font-size: 20px; margin: 32px 0 8px; }
 p, li { color: var(--text); }
