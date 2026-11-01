@@ -6,7 +6,7 @@
 
   document.addEventListener('DOMContentLoaded', () => {
     const groups = ['.steps-home li', '.split > *', '.price', '.ticks li'];
-    const single = ['.section .title', '.section .lead', '.band'];
+    const single = ['.section .title', '.section .lead', '.band', '.film-wrap', '.saver', '.compare-wrap'];
     const seen = new IntersectionObserver(
       (entries) => {
         for (const e of entries) {
@@ -31,3 +31,54 @@
     onScroll();
   });
 })();
+
+/* Film: plays silently while in view. With reduced motion it waits for a press on the controls. */
+document.addEventListener('DOMContentLoaded', () => {
+  const film = document.getElementById('film');
+  const toggle = document.getElementById('film-toggle');
+  if (!film || !toggle) return;
+  if (matchMedia('(max-width: 760px)').matches) film.poster = film.dataset.posterTall;
+  if (!('IntersectionObserver' in window) || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+  film.controls = false;
+  toggle.hidden = false;
+  let paused = false;
+  const label = () => (toggle.textContent = paused ? 'Lejátszás' : 'Szünet');
+  toggle.addEventListener('click', () => {
+    paused = !paused;
+    label();
+    if (paused) film.pause();
+    else film.play().catch(() => {});
+  });
+  new IntersectionObserver(
+    ([entry]) => {
+      if (!entry.isIntersecting) film.pause();
+      else if (!paused) {
+        film.preload = 'auto';
+        film.play().catch(() => {});
+      }
+    },
+    { threshold: 0.35 },
+  ).observe(film);
+});
+
+/* Savings slider: same sum as the app, with the latest NAV price (update with kalkulator.js). */
+document.addEventListener('DOMContentLoaded', () => {
+  const km = document.getElementById('saver-km');
+  const car = document.getElementById('saver-car');
+  if (!km || !car) return;
+  const PRICE = { p: 639, d: 712 };
+  const RATE = 15;
+  const money = (n) => String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, '\u00a0');
+  const paint = () => {
+    const [norm, fuel] = car.value.split(':');
+    const kms = Number(km.value);
+    const month = Math.floor((kms * Number(norm) * PRICE[fuel] * 100 + 50000) / 100000) + kms * RATE;
+    document.getElementById('saver-km-text').textContent = money(kms) + ' km';
+    document.getElementById('saver-month').textContent = money(month) + ' Ft';
+    document.getElementById('saver-year').textContent = money(month * 12) + ' Ft';
+  };
+  km.addEventListener('input', paint);
+  car.addEventListener('change', paint);
+  paint();
+});
