@@ -3,11 +3,23 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Trippo – útnyilvántartás egy húzással</title>
-<meta name="description" content="Automatikus útnyilvántartás és kiküldetési rendelvény saját autóhoz. Húzd el az utat, hónap végén egy koppintás a könyvelőnek.">
+<title>Útnyilvántartó app saját autóhoz | Trippo</title>
+<meta name="description" content="Automatikus útnyilvántartás és kiküldetési rendelvény iPhone-ra. A Trippo magától rögzíti az utaidat, hónap végén pedig kész a PDF és az Excel a könyvelőnek.">
+<link rel="canonical" href="https://trippo.hu/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Trippo">
+<meta property="og:locale" content="hu_HU">
+<meta property="og:title" content="Útnyilvántartó app saját autóhoz | Trippo">
+<meta property="og:description" content="Automatikus útnyilvántartás és kiküldetési rendelvény iPhone-ra. A Trippo magától rögzíti az utaidat, hónap végén pedig kész a PDF és az Excel a könyvelőnek.">
+<meta property="og:url" content="https://trippo.hu/">
+<meta property="og:image" content="https://trippo.hu/images/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="favicon.png">
 <link rel="stylesheet" href="style.css">
 <script src="home.js"></script>
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Organization","@id":"https://trippo.hu/#org","name":"Trippo","url":"https://trippo.hu","logo":"https://trippo.hu/images/logo.png"},{"@type":"WebSite","@id":"https://trippo.hu/#site","name":"Trippo","url":"https://trippo.hu","inLanguage":"hu","publisher":{"@id":"https://trippo.hu/#org"}},{"@type":"SoftwareApplication","name":"Trippo","applicationCategory":"BusinessApplication","operatingSystem":"iOS","inLanguage":"hu","url":"https://trippo.hu","image":"https://trippo.hu/images/og.jpg","description":"Automatikus útnyilvántartás és kiküldetési rendelvény iPhone-ra. A Trippo magától rögzíti az utaidat, hónap végén pedig kész a PDF és az Excel a könyvelőnek.","offers":[{"@type":"Offer","name":"Havi","price":"1990","priceCurrency":"HUF"},{"@type":"Offer","name":"Éves","price":"19900","priceCurrency":"HUF"}],"publisher":{"@id":"https://trippo.hu/#org"}},{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Nem kell elindítanom semmit?","acceptedAnswer":{"@type":"Answer","text":"Nem. A Trippo a háttérben rögzít, ha a helyhozzáférés „Mindig” értékre van állítva. Te csak besorolod az utakat."}},{"@type":"Question","name":"Sok akkut használ?","acceptedAnswer":{"@type":"Answer","text":"A pontos útvonalért a GPS folyamatosan fut, ezért több akkut használ, mint a legtöbb app. Hosszabb úton tartsd töltőn a telefont."}},{"@type":"Question","name":"Mi történik a magánutakkal?","acceptedAnswer":{"@type":"Answer","text":"A magánútként megjelölt utak útvonala, címei és megállói a telefonodon maradnak. A szerverünkre csak a km és az időpont kerül."}},{"@type":"Question","name":"Mi van, ha kimarad a GPS?","acceptedAnswer":{"@type":"Answer","text":"Alagútban vagy jel nélkül előfordulhat. A Trippo ilyenkor jelzi a kimaradást, és lezárás előtt ellenőrizheted a km-t."}},{"@type":"Question","name":"Elfogadja a NAV?","acceptedAnswer":{"@type":"Answer","text":"Az útnyilvántartás tartalmazza a jogszabály által előírt adatokat. A Trippo segédeszköz, nem adótanácsadás: az adatok valódiságáért a felhasználó felel, ezért nézd át az utakat lezárás előtt."}},{"@type":"Question","name":"Hogyan mondhatom le a Prót?","acceptedAnswer":{"@type":"Answer","text":"iPhone Beállítások › a neved › Előfizetések › Trippo Pro. A próbaidő alatti lemondásnál nem terhelünk."}}]}]}</script>
 </head>
 <body class="home">
 <header class="bar">
@@ -20,8 +32,8 @@
 <section class="hero-home">
   <div class="wrap hero-grid">
     <div>
-      <p class="eyebrow">Útnyilvántartás saját autóhoz</p>
-      <h1>Vezetsz. Elhúzod. Kész a papír.</h1>
+      <h1 class="eyebrow">Útnyilvántartó app saját autóhoz</h1>
+      <p class="hero-title">Vezetsz. Elhúzod. Kész a papír.</p>
       <p class="lead">A Trippo magától rögzíti az utaidat. Te csak elhúzod: <b>jobbra üzleti, balra magán</b>. Hónap végén egy koppintással kész a NAV-szabályok szerinti útnyilvántartás és kiküldetési rendelvény.</p>
       <div class="cta">
         <span class="btn btn-soon">Hamarosan az App Store-ban</span>
@@ -30,7 +42,7 @@
       <p class="muted">A rögzítés és a besorolás ingyenes. Pro: 14 nap ingyen, utána 1 990 Ft/hó. iPhone-ra.</p>
     </div>
     <div class="hero-phone">
-      <figure class="phone"><img class="screen" src="images/review.jpg" width="1179" height="2565" alt="A Trippo Átnézés képernyője: egy út kártyája 18 km-rel, üzleti gombbal"><img class="frame" src="images/iphone-frame.webp" width="978" height="2000" alt=""></figure>
+      <figure class="phone"><img class="screen" src="images/review-720.jpg" width="720" height="1566" fetchpriority="high" alt="A Trippo Átnézés képernyője: egy út kártyája 18 km-rel, üzleti gombbal"><img class="frame" src="images/iphone-frame.webp" width="978" height="2000" alt=""></figure>
       <div class="chip chip-money"><b>+1 305 Ft</b><span>ha üzleti</span></div>
     </div>
   </div>
@@ -49,7 +61,7 @@
 
 <section class="section alt">
   <div class="wrap split">
-    <figure class="phone"><img class="screen" src="images/report.jpg" width="1179" height="2565" loading="lazy" alt="A Trippo Riport képernyője: 39 499 Ft adómentes térítés októberre"><img class="frame" src="images/iphone-frame.webp" width="978" height="2000" alt=""></figure>
+    <figure class="phone"><img class="screen" src="images/report-720.jpg" width="720" height="1566" loading="lazy" alt="A Trippo Riport képernyője: 39 499 Ft adómentes térítés októberre"><img class="frame" src="images/iphone-frame.webp" width="978" height="2000" alt=""></figure>
     <div>
       <h2 class="title">Látod, mennyi jár vissza</h2>
       <p class="lead">A költségtérítést a havi NAV-üzemanyagárral és a hivatalos fogyasztási normával számoljuk. Minden üzleti útnál látod, mennyit ér.</p>
@@ -73,7 +85,7 @@
         <li>A magánutak útvonala nem kerül fel a szerverünkre</li>
       </ul>
     </div>
-    <figure class="phone"><img class="screen" src="images/trips.jpg" width="1179" height="2565" loading="lazy" alt="A Trippo Utak képernyője: októberi utak listája kategóriákkal"><img class="frame" src="images/iphone-frame.webp" width="978" height="2000" alt=""></figure>
+    <figure class="phone"><img class="screen" src="images/trips-720.jpg" width="720" height="1566" loading="lazy" alt="A Trippo Utak képernyője: októberi utak listája kategóriákkal"><img class="frame" src="images/iphone-frame.webp" width="978" height="2000" alt=""></figure>
   </div>
 </section>
 
@@ -130,9 +142,20 @@
   </div>
 </section>
 
+<section class="section">
+  <div class="wrap">
+    <h2 class="title">Útmutatók</h2>
+    <div class="guides">
+      <a href="utnyilvantartas.html"><b>Útnyilvántartás saját autóhoz</b><span>Mi kell bele, és hogyan vezesd egyszerűen.</span></a>
+      <a href="kikuldetesi-rendelveny.html"><b>Kiküldetési rendelvény</b><span>Mi kerül rá, és hogyan készül el havonta.</span></a>
+      <a href="km-elszamolas.html"><b>Km-elszámolás</b><span>A képlet és egy számolt példa.</span></a>
+    </div>
+  </div>
+</section>
+
 <footer class="foot-home">
   <div class="wrap">
-    <nav class="links"><a href="konyvelo.html">Könyvelőknek</a><a href="tamogatas.html">Támogatás</a><a href="adatvedelem.html">Adatkezelési tájékoztató</a><a href="aszf.html">Felhasználási feltételek</a><a href="fiok-torles.html">Fiók törlése</a></nav>
+    <nav class="links"><a href="utnyilvantartas.html">Útnyilvántartás</a><a href="kikuldetesi-rendelveny.html">Kiküldetési rendelvény</a><a href="km-elszamolas.html">Km-elszámolás</a><a href="konyvelo.html">Könyvelőknek</a><a href="tamogatas.html">Támogatás</a><a href="adatvedelem.html">Adatkezelési tájékoztató</a><a href="aszf.html">Felhasználási feltételek</a><a href="fiok-torles.html">Fiók törlése</a></nav>
     <p class="muted">© 2026 <span class="todo">[ÜZEMELTETŐ NEVE]</span></p>
   </div>
 </footer>

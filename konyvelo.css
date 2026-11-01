@@ -1,5 +1,5 @@
 /* Könyvelői portál: on top of style.css. Desktop first (accountants work on a big screen), still fine on a phone. */
-main.wide { max-width: 1080px; padding-top: 24px; min-height: 70vh; }
+main.wide { max-width: 1080px; padding-top: 24px; min-height: 100vh; }
 .hidden { display: none !important; }
 
 .bar-left, .bar-right { display: flex; align-items: center; gap: 12px; min-width: 0; }
