@@ -5,23 +5,123 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Trippo – útnyilvántartás egy húzással</title>
 <meta name="description" content="Automatikus útnyilvántartás és kiküldetési rendelvény saját autóhoz. Húzd el az utat, hónap végén egy koppintás a könyvelőnek.">
+<link rel="icon" href="favicon.png">
 <link rel="stylesheet" href="style.css">
+<script src="home.js"></script>
 </head>
-<body><main>
-<header class="top"><span class="logo"></span><a href="index.html">Trippo</a></header>
-<h1>Útnyilvántartás egy húzással</h1>
-<p>A Trippo magától rögzíti az autós utaidat. Te csak elhúzod: <b>jobbra üzleti, balra magán</b>. Hónap végén egy koppintással kész a
-NAV-szabályok szerinti útnyilvántartás és kiküldetési rendelvény, és mehet a könyvelőnek.</p>
-<div class="card">
-<ul>
-<li>Automatikus rögzítés a háttérben, pontos km</li>
-<li>Költségtérítés a havi NAV-üzemanyagárral és a hivatalos normával</li>
-<li>PDF és Excel a könyvelőnek, ellenőrző kóddal</li>
-<li>Több autó, tankolási blokkok, CarPlay-indítás</li>
-</ul>
-</div>
-<p><a class="btn" href="#"><span class="todo">[App Store link a megjelenés után]</span></a></p>
-<nav class="links"><a href="tamogatas.html">Támogatás</a><a href="adatvedelem.html">Adatkezelési tájékoztató</a><a href="aszf.html">Felhasználási feltételek</a><a href="fiok-torles.html">Fiók törlése</a></nav>
-<p class="muted">© 2026 <span class="todo">[ÜZEMELTETŐ NEVE]</span></p>
-</main></body>
+<body class="home">
+<header class="bar">
+  <div class="bar-in">
+    <a class="brand" href="index.html"><span class="logo"></span><span>Trippo</span></a>
+    <nav class="bar-nav"><a href="#hogyan">Hogyan működik</a><a href="#arak">Árak</a><a href="konyvelo.html">Könyvelőknek</a></nav>
+  </div>
+</header>
+
+<section class="hero-home">
+  <div class="wrap hero-grid">
+    <div>
+      <p class="eyebrow">Útnyilvántartás saját autóhoz</p>
+      <h1>Vezetsz. Elhúzod. Kész a papír.</h1>
+      <p class="lead">A Trippo magától rögzíti az utaidat. Te csak elhúzod: <b>jobbra üzleti, balra magán</b>. Hónap végén egy koppintással kész a NAV-szabályok szerinti útnyilvántartás és kiküldetési rendelvény.</p>
+      <div class="cta">
+        <span class="btn btn-soon">Hamarosan az App Store-ban</span>
+        <a class="btn btn-ghost" href="#hogyan">Hogyan működik?</a>
+      </div>
+      <p class="muted">A rögzítés és a besorolás ingyenes. Pro: 14 nap ingyen, utána 1 990 Ft/hó. iPhone-ra.</p>
+    </div>
+    <div class="hero-phone">
+      <figure class="phone"><img class="screen" src="images/review.jpg" width="1179" height="2565" alt="A Trippo Átnézés képernyője: egy út kártyája 18 km-rel, üzleti gombbal"><img class="frame" src="images/iphone-frame.webp" width="978" height="2000" alt=""></figure>
+      <div class="chip chip-money"><b>+1 305 Ft</b><span>ha üzleti</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="hogyan">
+  <div class="wrap">
+    <h2 class="title">Három lépés, és nincs több füzet</h2>
+    <ol class="steps-home">
+      <li><span class="step-num">1</span><h3>Vezetsz</h3><p>Nem kell elindítanod semmit. A Trippo a háttérben rögzíti az utat, a km-t és a címeket.</p></li>
+      <li><span class="step-num">2</span><h3>Elhúzod</h3><p>Jobbra üzleti, balra magán, felfelé munkába járás. A visszatérő utakat idővel magától besorolja.</p></li>
+      <li><span class="step-num">3</span><h3>Kész a papír</h3><p>Hónap végén lezárod, és mehet a PDF és az Excel a könyvelődnek. Egy koppintás.</p></li>
+    </ol>
+  </div>
+</section>
+
+<section class="section alt">
+  <div class="wrap split">
+    <figure class="phone"><img class="screen" src="images/report.jpg" width="1179" height="2565" loading="lazy" alt="A Trippo Riport képernyője: 39 499 Ft adómentes térítés októberre"><img class="frame" src="images/iphone-frame.webp" width="978" height="2000" alt=""></figure>
+    <div>
+      <h2 class="title">Látod, mennyi jár vissza</h2>
+      <p class="lead">A költségtérítést a havi NAV-üzemanyagárral és a hivatalos fogyasztási normával számoljuk. Minden üzleti útnál látod, mennyit ér.</p>
+      <ul class="ticks">
+        <li>Lezárás előtt megmutatja, mi hiányzik még</li>
+        <li>Napidíj, parkolás, autópálya-matrica egy helyen</li>
+        <li>A lezárt hónap utólag nem módosítható, ellenőrző kóddal</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap split reverse">
+    <div>
+      <h2 class="title">Minden út, egy helyen</h2>
+      <p class="lead">Pontos km, dátum, honnan-hová és az út célja. Tankolási blokkot és km-órát elég lefotóznod.</p>
+      <ul class="ticks">
+        <li>Több autó külön nyilvántartással</li>
+        <li>Indítás CarPlay-jel, Sirivel vagy widgetről</li>
+        <li>A magánutak útvonala nem kerül fel a szerverre</li>
+      </ul>
+    </div>
+    <figure class="phone"><img class="screen" src="images/trips.jpg" width="1179" height="2565" loading="lazy" alt="A Trippo Utak képernyője: októberi utak listája kategóriákkal"><img class="frame" src="images/iphone-frame.webp" width="978" height="2000" alt=""></figure>
+  </div>
+</section>
+
+<section class="section alt" id="arak">
+  <div class="wrap">
+    <h2 class="title center">Egyszerű árazás</h2>
+    <p class="lead center">Az utak rögzítése és besorolása ingyenes. A Pro 14 nap ingyenes próbával indul, és bármikor lemondható.</p>
+    <div class="prices">
+      <div class="price">
+        <h3>Havi</h3>
+        <p class="amount">1 990 Ft<small>/hó</small></p>
+        <p class="muted">Havonta számlázva</p>
+      </div>
+      <div class="price best">
+        <span class="badge">2 hónap ingyen</span>
+        <h3>Éves</h3>
+        <p class="amount">19 900 Ft<small>/év</small></p>
+        <p class="muted">Évente számlázva</p>
+      </div>
+    </div>
+    <ul class="ticks ticks-center">
+      <li>Havi lezárás, PDF és Excel</li>
+      <li>Több autó</li>
+      <li>Km-óra és blokk olvasása fotóból</li>
+    </ul>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap">
+    <div class="band">
+      <div>
+        <h2>Könyvelő vagy?</h2>
+        <p>Minden ügyfeled lezárt hónapja egy helyen, ingyen. Látod, ki zárta le a múlt hónapot, és egy kattintással letöltöd az Excelt.</p>
+      </div>
+      <div class="band-cta">
+        <a class="btn btn-white" href="konyvelo.html#demo">Minta megtekintése</a>
+        <a class="btn btn-line" href="konyvelo.html">Könyvelői portál</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="foot-home">
+  <div class="wrap">
+    <nav class="links"><a href="konyvelo.html">Könyvelőknek</a><a href="tamogatas.html">Támogatás</a><a href="adatvedelem.html">Adatkezelési tájékoztató</a><a href="aszf.html">Felhasználási feltételek</a><a href="fiok-torles.html">Fiók törlése</a></nav>
+    <p class="muted">© 2026 <span class="todo">[ÜZEMELTETŐ NEVE]</span></p>
+  </div>
+</footer>
+</body>
 </html>
