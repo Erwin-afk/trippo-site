@@ -176,20 +176,40 @@ function bindLogin() {
 }
 
 function loginView() {
+  document.body.classList.add('landing');
   show(`<section class="hero">
-    <div>
-      <h1>Minden ügyfeled útnyilvántartása egy helyen</h1>
-      <p class="lead">Ügyfeleid a Trippo appal vezetik a kilométereiket. Te itt látod a lezárt hónapjaikat, készen a könyveléshez.</p>
-      <ul class="points">
-        <li><b>Egy belépés, minden ügyfél</b><span>Egy pillantásra látod, ki zárta le a múlt hónapot, és kire kell még várni.</span></li>
-        <li><b>Utólag nem módosítható</b><span>A lezárt hónap befagy; az ellenőrző kód igazolja, hogy az adat azóta nem változott.</span></li>
-        <li><b>Kész az Excelbe</b><span>Havi vagy éves CSV, NAV-árral, normával és km-óra-állással.</span></li>
-        <li><b>Ingyenes a könyvelőknek</b><span>Csak azt látod, amit az ügyfeled megoszt veled, és ezt bármikor visszavonhatja.</span></li>
-      </ul>
-      <a class="button" href="#demo">Minta megtekintése</a>
-    </div>
-    ${loginForm('Belépés', 'Nincs jelszó: kódot küldünk e-mailben. Első belépéskor létrejön a fiókod.')}
-  </section>`);
+      <div>
+        <p class="eyebrow">Ingyenes a könyvelőknek</p>
+        <h1>Minden ügyfeled útnyilvántartása egy helyen</h1>
+        <p class="lead">Ügyfeleid a Trippo appal vezetik a kilométereiket. Te itt látod a lezárt hónapjaikat, készen a könyveléshez.</p>
+        <a class="button" href="#demo">Minta megtekintése</a>
+      </div>
+      ${loginForm('Belépés', 'Nincs jelszó: kódot küldünk e-mailben. Első belépéskor létrejön a fiókod.')}
+    </section>
+    <figure class="preview">
+      <div class="preview-bar"><i></i><i></i><i></i></div>
+      <picture>
+        <source srcset="images/portal-dark.jpg" media="(prefers-color-scheme: dark)">
+        <img src="images/portal-light.jpg" width="2160" height="1096" alt="A könyvelői portál ügyféllistája: ki zárta le a múlt hónapot, és kire kell még várni">
+      </picture>
+    </figure>
+    <section class="block">
+      <h2>Amit nem kell többé megkérdezned</h2>
+      <div class="features">
+        <div><h3>Ki zárta le a hónapot?</h3><p>Egy pillantásra látod, kitől van meg a múlt hónap, és kire kell még várni.</p></div>
+        <div><h3>Utólag nem módosítható</h3><p>A lezárt hónap befagy; az ellenőrző kód igazolja, hogy az adat azóta nem változott.</p></div>
+        <div><h3>Kész az Excelbe</h3><p>Havi vagy éves CSV, NAV-árral, normával és km-óra-állással.</p></div>
+        <div><h3>Csak amit megosztanak</h3><p>Kizárólag a lezárt hónapokat látod, és az ügyfeled bármikor visszavonhatja.</p></div>
+      </div>
+    </section>
+    <section class="block">
+      <h2>Így kerül hozzád egy ügyfél</h2>
+      <ol class="path">
+        <li><b>Linket küld</b><span>Az ügyfeled a Trippo appban létrehoz egy könyvelői linket.</span></li>
+        <li><b>Megnyitod</b><span>Regisztráció nélkül is látod a lezárt hónapjait.</span></li>
+        <li><b>Felveszed</b><span>Egy kattintással az ügyfeleid közé kerül, és a link ezután csak neked működik.</span></li>
+      </ol>
+    </section>`);
   bindLogin();
 }
 
@@ -439,6 +459,7 @@ async function header(s, demo) {
 }
 
 async function route() {
+  document.body.classList.remove('landing');
   const hash = location.hash.slice(1);
   const s = await session();
   try {

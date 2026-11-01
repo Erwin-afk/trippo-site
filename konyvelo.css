@@ -2,13 +2,15 @@
 main.wide { max-width: 1080px; padding-top: 24px; min-height: 70vh; }
 .hidden { display: none !important; }
 
-.tag { font-weight: 600; font-size: 14px; color: var(--muted); padding-left: 10px; border-left: 1px solid var(--line); white-space: nowrap; }
+.bar-left, .bar-right { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.tag { font-weight: 600; font-size: 14px; color: var(--muted); padding-left: 12px; border-left: 1px solid var(--line); white-space: nowrap; text-decoration: none; }
+.tag:hover { color: var(--text); }
 .who { display: flex; align-items: center; gap: 12px; font-size: 14px; color: var(--muted); min-width: 0; }
 .who span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 button, .button { font: inherit; font-weight: 600; font-size: 15px; border: 1px solid var(--line); background: var(--card); color: var(--text); border-radius: 12px; padding: 10px 14px; cursor: pointer; text-decoration: none; display: inline-block; white-space: nowrap; }
 button:hover, .button:hover { border-color: var(--muted); }
-button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+button.primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
 button.danger { color: #d93d42; }
 button.link { border: 0; background: none; color: var(--accent); padding: 0; font-size: 14px; }
 button:disabled { opacity: .6; cursor: default; }
@@ -19,8 +21,25 @@ label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 6px; }
 .error { color: #d93d42; font-size: 14px; margin: 0; }
 
 /* Login */
-.hero { display: grid; grid-template-columns: 1.2fr 1fr; gap: 40px; align-items: start; padding: 32px 0; }
-.hero h1 { font-size: 40px; letter-spacing: -.02em; }
+body.landing { background: linear-gradient(180deg, var(--card) 0, var(--bg) 620px); }
+.hero { display: grid; grid-template-columns: 1.25fr 1fr; gap: 56px; align-items: center; padding: 48px 0 56px; }
+.eyebrow { color: var(--accent); font-weight: 700; font-size: 15px; margin: 0 0 10px; }
+.preview { margin: 0 0 16px; border: 1px solid var(--line); border-radius: 18px; overflow: hidden; background: var(--bg); box-shadow: 0 30px 60px -30px rgba(15, 20, 25, .4); }
+.preview-bar { display: flex; gap: 6px; padding: 12px 14px; background: var(--card); border-bottom: 1px solid var(--line); }
+.preview-bar i { width: 11px; height: 11px; border-radius: 50%; background: var(--line); }
+.preview img { display: block; width: 100%; height: auto; }
+.block { padding-top: 56px; }
+.block h2 { font-size: 28px; letter-spacing: -.02em; margin: 0 0 20px; }
+.features { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.features div { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 18px; }
+.features h3 { font-size: 16px; margin: 0 0 6px; }
+.features p { font-size: 14px; color: var(--muted); margin: 0; }
+.path { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; counter-reset: step; }
+.path li { counter-increment: step; padding-top: 44px; position: relative; }
+.path li::before { content: counter(step); position: absolute; top: 0; left: 0; width: 32px; height: 32px; border-radius: 50%; background: var(--accent); color: var(--on-accent); font-weight: 800; display: flex; align-items: center; justify-content: center; }
+.path b { display: block; font-size: 17px; }
+.path span { color: var(--muted); font-size: 15px; }
+.hero h1 { font-size: 46px; line-height: 1.08; letter-spacing: -.025em; }
 .lead { font-size: 18px; color: var(--muted); margin: 12px 0 24px; }
 .points { list-style: none; padding: 0; margin: 0 0 24px; display: grid; gap: 14px; }
 .points li { padding-left: 30px; position: relative; }
@@ -83,7 +102,11 @@ label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 6px; }
 .year-tabs button[aria-pressed="true"] { background: var(--text); color: var(--bg); border-color: var(--text); }
 
 @media (max-width: 760px) {
-  .hero { grid-template-columns: 1fr; gap: 16px; padding: 8px 0; }
+  .hero { grid-template-columns: 1fr; gap: 16px; padding: 8px 0 32px; }
+  .features { grid-template-columns: 1fr 1fr; }
+  .path { grid-template-columns: 1fr; }
+  .block { padding-top: 40px; }
+  .block h2 { font-size: 23px; }
   .hero h1 { font-size: 30px; }
   .hero .login { order: -1; }
   .stats { grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
