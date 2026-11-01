@@ -15,6 +15,12 @@ export const XLSX_MIME = 'application/vnd.openxmlformats-officedocument.spreadsh
 /** What the employer pays out: the per-km allowance plus napidíj and the receipts. */
 export const payableOf = (s) => (s?.total_huf ?? 0) + (s?.per_diem?.totalHuf ?? 0) + (s?.expenses_huf ?? 0);
 
+/** Company cars and vans: the month proves a business share, nothing is paid per km. */
+export const isShareLog = (s) => !!s?.usage && s.usage !== 'own';
+
+const USAGE = { own: 'Saját gépkocsi', company: 'Céges gépkocsi', van: 'Kisteherautó' };
+const pct = (n) => `${comma(n ?? 0)} %`;
+
 /* ---------- Styles ---------- */
 
 const INK = 'FF0F1419';
@@ -89,6 +95,7 @@ function cellXml(cell, ref) {
   const [value, style] = cell;
   const s = ` s="${STYLE_IDS[style ?? 'plain']}"`;
   if (value === null || value === undefined || value === '') return `<c r="${ref}"${s}/>`;
+  if (value.formula) return `<c r="${ref}"${s}><f>${esc(value.formula)}</f></c>`;
   if (typeof value === 'number') return `<c r="${ref}"${s}><v>${value}</v></c>`;
   return `<c r="${ref}"${s} t="inlineStr"><is><t xml:space="preserve">${esc(value)}</t></is></c>`;
 }
@@ -241,7 +248,41 @@ function logCells(line, month) {
 
 const headRow = (labels, numeric) => ({ height: 32, cells: labels.map((l, i) => [l, numeric.includes(i) ? 'headNum' : 'head']) });
 
+function shareSheet(c) {
+  const s = c.snapshot ?? {};
+  const o = odometerOf(c);
+  const section = (title) => ({ cells: [[title, 'section'], ['', 'section']], height: 24 });
+  const text = (label, value) => ({ cells: [[label, 'label'], [value ?? '–', 'value']] });
+  const km = (label, value) => (value === null || value === undefined ? text(label, '–') : { cells: [[label, 'label'], [value, 'valueKm']] });
+  const rows = [
+    { cells: [[`Útnyilvántartás · ${monthLabel(c.month)}`, 'title']], height: 32 },
+    { cells: [[[USAGE[s.usage], s.people?.driverName, c.vehicles?.plate].filter(Boolean).join(' · '), 'sub']] },
+    { cells: [] },
+    { cells: [['Üzleti arány', 'payText'], [pct(s.business_share_pct), 'payText']], height: 34 },
+    { cells: [] },
+    section('Kilométerek'),
+    km('Üzleti', s.business_km),
+    km('Magán', s.personal_km),
+    km('Munkába járás', s.commute_km),
+    km('Km-óra a hónap elején', o.start),
+    km('Km-óra a hónap végén', o.end),
+    km('Km-óra az év első napján', o.yearStart),
+    { cells: [] },
+    section('Adatok'),
+    text('Gépkocsivezető', s.people?.driverName),
+    text('Vállalkozás / munkáltató', s.people?.employerName),
+    text('Rendszám', c.vehicles?.plate),
+    text('Gépkocsi', vehicleText(c)),
+    text('Lezárva', closedText(c.closed_at)),
+    { cells: [['Ellenőrző kód (SHA-256)', 'label'], [c.snapshot_hash ?? '–', 'hash']], height: 42 },
+    { cells: [] },
+    { cells: [['Az arány az üzleti km és az összes megtett km hányadosa; a munkába járás nem üzleti út.', 'note']], height: 30 },
+  ];
+  return { name: 'Összesítő', widths: [46, 42], rows, merges: [`A${rows.length}:B${rows.length}`], portrait: true };
+}
+
 function summarySheet(c) {
+  if (isShareLog(c.snapshot)) return shareSheet(c);
   const s = c.snapshot ?? {};
   const o = odometerOf(c);
   const pay = payableOf(s);
@@ -290,22 +331,24 @@ function logSheet(c) {
   const s = c.snapshot ?? {};
   const o = odometerOf(c);
   const lines = s.lines ?? [];
-  const facts = [o.start !== null && `Km-óra: ${o.start.toLocaleString('hu-HU')} → ${o.end === null ? '–' : o.end.toLocaleString('hu-HU')} km`, s.norm_l_per_100km != null && `${comma(s.norm_l_per_100km)} l/100 km`, s.price_label].filter(Boolean).join(' · ');
+  const share = isShareLog(s);
+  const facts = [o.start !== null && `Km-óra: ${o.start.toLocaleString('hu-HU')} → ${o.end === null ? '–' : o.end.toLocaleString('hu-HU')} km`, !share && s.norm_l_per_100km != null && `${comma(s.norm_l_per_100km)} l/100 km`, !share && s.price_label, share && `Üzleti arány: ${pct(s.business_share_pct)}`].filter(Boolean).join(' · ');
+  const cols = share ? 8 : 11;
   const rows = [
     { cells: [['Útnyilvántartás', 'title']], height: 32 },
     { cells: [[whoLine(c), 'sub']] },
     { cells: [[facts, 'sub']] },
-    headRow([...LOG_HEAD, ...LOG_MONEY], [7, 8, 9, 10]),
-    ...(lines.length ? lines.map((l) => ({ cells: logCells(l, c.month) })) : [{ cells: [['Ebben a hónapban nem volt üzleti út.', 'cell']] }]),
-    { fill: 'totalText', height: 24, cells: [['Üzleti km összesen', 'totalText'], ...Array(6).fill(['', 'totalText']), [s.business_km ?? 0, 'totalInt'], [s.fuel_cost_huf ?? 0, 'totalInt'], [s.amortization_huf ?? 0, 'totalInt'], [s.total_huf ?? 0, 'totalInt']] },
+    headRow([...LOG_HEAD, ...LOG_MONEY].slice(0, cols), [7, 8, 9, 10]),
+    ...(lines.length ? lines.map((l) => ({ cells: logCells(l, c.month).slice(0, cols) })) : [{ cells: [['Ebben a hónapban nem volt üzleti út.', 'cell']] }]),
+    { fill: 'totalText', height: 24, cells: [['Üzleti km összesen', 'totalText'], ...Array(6).fill(['', 'totalText']), [s.business_km ?? 0, 'totalInt'], ...(share ? [] : [[s.fuel_cost_huf ?? 0, 'totalInt'], [s.amortization_huf ?? 0, 'totalInt'], [s.total_huf ?? 0, 'totalInt']])] },
   ];
   const lineFuel = lines.reduce((sum, l) => sum + (l.fuelHuf ?? 0), 0);
   const merges = [];
-  if (lineFuel !== (s.fuel_cost_huf ?? 0)) {
+  if (!share && lineFuel !== (s.fuel_cost_huf ?? 0)) {
     rows.push({ cells: [] }, { height: 18, cells: [[`A soronkénti Ft kerekített. A havi összeg az összes km-ből számolódik, ezért pár forinttal eltérhet a sorok összegétől (${s.business_km} km × ${comma(s.norm_l_per_100km)} l/100 km × ${comma(s.fuel_price_huf_per_l)} Ft/l).`, 'note']] });
     merges.push(`A${rows.length}:K${rows.length}`);
   }
-  return { name: 'Útnyilvántartás', widths: LOG_WIDTHS, rows, freeze: 4, repeat: 4, merges, filter: lines.length ? `A4:K${4 + lines.length}` : undefined };
+  return { name: 'Útnyilvántartás', widths: LOG_WIDTHS.slice(0, cols), rows, freeze: 4, repeat: 4, merges, filter: lines.length ? `A4:${share ? 'H' : 'K'}${4 + lines.length}` : undefined };
 }
 
 /** Receipts and napidíj of one or more closes, or null when there are none. */
@@ -364,7 +407,8 @@ export function yearWorkbook(closes, year) {
   const driver = list.find((c) => c.snapshot?.people?.driverName)?.snapshot.people.driverName;
   const plates = [...new Set(list.map((c) => c.vehicles?.plate).filter(Boolean))].join(', ');
   const who = [driver, plates].filter(Boolean).join(' · ');
-  const labels = ['Hónap', 'Rendszám', 'Üzleti km', 'Magán km', 'Munkába járás km', 'NAV-ár (Ft/l)', 'Üzemanyag (Ft)', 'Normaköltség (Ft)', 'Költségtérítés (Ft)', 'Napidíj (Ft)', 'Számlák (Ft)', 'Kifizetendő (Ft)', ...(showOpen ? ['Lezárva'] : [])];
+  const anyShare = list.some((c) => isShareLog(c.snapshot));
+  const labels = ['Hónap', 'Rendszám', 'Üzleti km', 'Magán km', 'Munkába járás km', 'NAV-ár (Ft/l)', 'Üzemanyag (Ft)', 'Normaköltség (Ft)', 'Költségtérítés (Ft)', 'Napidíj (Ft)', 'Számlák (Ft)', 'Kifizetendő (Ft)', ...(anyShare ? ['Üzleti arány'] : []), ...(showOpen ? ['Lezárva'] : [])];
   const sum = (pick) => list.reduce((s, c) => s + (pick(c.snapshot ?? {}) ?? 0), 0);
   const money = [(s) => s.business_km, (s) => s.personal_km, (s) => s.commute_km, null, (s) => s.fuel_cost_huf, (s) => s.amortization_huf, (s) => s.total_huf, (s) => s.per_diem?.totalHuf, (s) => s.expenses_huf, payableOf];
   const body = list.map((c) => {
@@ -372,6 +416,7 @@ export function yearWorkbook(closes, year) {
     const cells = [[monthLabel(c.month), 'cell'], [c.vehicles?.plate ?? '', 'cell']];
     if (!s) return { cells: [...cells, ['nincs NAV-ár', 'cell'], ...Array(labels.length - 3).fill(['', 'cell'])] };
     cells.push(...money.map((pick) => (pick ? [pick(s) ?? 0, 'cellInt'] : [s.fuel_price_huf_per_l ?? '', 'cellInt'])));
+    if (anyShare) cells.push([isShareLog(s) ? pct(s.business_share_pct) : '', 'cell']);
     if (showOpen) cells.push([c.closed === false ? 'nem' : 'igen', 'cell']);
     return { cells };
   });
@@ -383,7 +428,7 @@ export function yearWorkbook(closes, year) {
     ...body,
     { fill: 'totalText', height: 24, cells: [['Összesen', 'totalText'], ['', 'totalText'], ...money.map((pick) => (pick ? [sum(pick), 'totalInt'] : ['', 'totalText']))] },
   ];
-  const summary = { name: `${year} összesítő`, widths: [17, 11, 10, 10, 11, 10, 13, 13, 13, 11, 11, 14, ...(showOpen ? [9] : [])], rows, freeze: 4, repeat: 4 };
+  const summary = { name: `${year} összesítő`, widths: [17, 11, 10, 10, 11, 10, 13, 13, 13, 11, 11, 14, ...(anyShare ? [10] : []), ...(showOpen ? [9] : [])], rows, freeze: 4, repeat: 4 };
 
   const lines = list.flatMap((c) => (c.snapshot?.lines ?? []).map((l) => ({ cells: logCells(l, c.month) })));
   const trips = {

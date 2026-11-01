@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="hu">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Km-elszámolás kalkulátor, fogyasztási norma, lízing áfa | Trippo</title>
+<meta name="description" content="Ingyenes kalkulátorok: számold ki a saját autós költségtérítést a NAV üzemanyagárral, nézd meg a fogyasztási normát, hasonlítsd össze a lízing áfa levonását, és töltsd le az Excel útnyilvántartás sablont.">
+<link rel="canonical" href="https://trippo.hu/kalkulator">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Trippo">
+<meta property="og:locale" content="hu_HU">
+<meta property="og:title" content="Km-elszámolás kalkulátor, fogyasztási norma, lízing áfa">
+<meta property="og:description" content="Ingyenes kalkulátorok és Excel útnyilvántartás sablon, belépés nélkül.">
+<meta property="og:url" content="https://trippo.hu/kalkulator">
+<meta property="og:image" content="https://trippo.hu/images/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="favicon.png">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="kalkulator.css">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"Trippo kalkulátorok","description":"Km-elszámolás kalkulátor, fogyasztási norma és lízing áfa összehasonlítás saját és céges autóhoz.","applicationCategory":"FinanceApplication","operatingSystem":"Web","inLanguage":"hu","url":"https://trippo.hu/kalkulator","offers":{"@type":"Offer","price":"0","priceCurrency":"HUF"}}</script>
+</head>
+<body>
+<header class="bar">
+  <div class="bar-in">
+    <a class="brand" href="index.html"><span class="logo"></span><span>Trippo</span></a>
+    <nav class="bar-nav"><a href="index.html#arak">Árak</a><a href="tamogatas.html">Támogatás</a><a href="konyvelo.html">Könyvelőknek</a></nav>
+  </div>
+</header>
+<main class="doc">
+<h1>Kalkulátorok és sablon</h1>
+<p class="lead-doc">Ingyenes, belépés nélkül. Amit beírsz, a böngésződben marad: nem küldjük el sehova.</p>
+
+<h2 id="km">Km-elszámolás kalkulátor</h2>
+<p>Saját autó üzleti használatánál ennyi költségtérítés számolható el egy hónapra.</p>
+<form class="calc-form" id="km-form">
+  <label>Hónap<select id="km-month"></select></label>
+  <label>Üzemanyag<select id="km-fuel"><option value="petrol">Benzin</option><option value="diesel">Dízel</option></select></label>
+  <label>Hengerűrtartalom (cm³)<input id="km-ccm" inputmode="numeric" value="1498"></label>
+  <label>Üzleti km<input id="km-km" inputmode="numeric" value="1000"></label>
+</form>
+<div class="calc-result" aria-live="polite">
+  <div><span>Fogyasztási norma</span><b id="km-norm"></b></div>
+  <div><span>NAV üzemanyagár</span><b id="km-price"></b></div>
+  <div><span>Üzemanyag</span><b id="km-fuelcost"></b></div>
+  <div><span>Autóhasználat (15 Ft/km)</span><b id="km-amort"></b></div>
+  <div class="sum"><span>Költségtérítés összesen</span><b id="km-total"></b></div>
+</div>
+
+<h2 id="norma">Fogyasztási normák</h2>
+<p>A 60/1992. (IV. 1.) Korm. rendelet szerinti alapnorma, liter / 100 km.</p>
+<table>
+<tr><th>Hengerűrtartalom</th><th>Benzin</th><th>Dízel</th></tr>
+<tr><td>1000 cm³-ig</td><td>7,6</td><td>5,7</td></tr>
+<tr><td>1001–1500 cm³</td><td>8,6</td><td>5,7</td></tr>
+<tr><td>1501–2000 cm³</td><td>9,5</td><td>6,7</td></tr>
+<tr><td>2001–3000 cm³</td><td>11,4</td><td>7,6</td></tr>
+<tr><td>3000 cm³ fölött</td><td>13,6</td><td>9,5</td></tr>
+</table>
+
+<h2 id="lizing">Lízing áfa: 50% vagy a tényleges arány?</h2>
+<p>Bérelt személyautónál az áfa 50%-a nem vonható le (Áfa tv. 124. § (4)), de a vállalkozás dönthet úgy, hogy a tényleges üzleti használat alapján von le (125/A. §). Ehhez útnyilvántartás kell. Zárt végű lízingnél és vásárlásnál az áfa általában nem vonható le.</p>
+<form class="calc-form" id="vat-form">
+  <label>Havi nettó díj (Ft)<input id="vat-fee" inputmode="numeric" value="150000"></label>
+  <label>Üzleti arány (%)<input id="vat-share" inputmode="numeric" value="85"></label>
+  <label>Hónapok száma<input id="vat-months" inputmode="numeric" value="36"></label>
+</form>
+<div class="calc-result" aria-live="polite">
+  <div><span>Teljes áfa (27%)</span><b id="vat-total"></b></div>
+  <div><span>Levonható 50% átalánnyal</span><b id="vat-flat"></b></div>
+  <div><span>Levonható a tényleges aránnyal</span><b id="vat-actual"></b></div>
+  <div class="sum"><span id="vat-label">Különbség</span><b id="vat-diff"></b></div>
+</div>
+
+<h2 id="sablon">Excel útnyilvántartás sablon</h2>
+<p>Üres havi sablon a kötelező oszlopokkal, a km összegével. Nyomtatható, és bármelyik táblázatkezelő megnyitja.</p>
+<p><a class="btn" href="utnyilvantartas-sablon.xlsx" download>Sablon letöltése (Excel)</a></p>
+
+<div class="guide-cta">
+  <h2>Ne kézzel vezesd</h2>
+  <p>A Trippo magától rögzíti az utaidat, és hónap végén elkészíti az útnyilvántartást, saját és céges autóhoz is.</p>
+  <a class="btn" href="index.html">Így működik a Trippo</a>
+</div>
+<p class="muted">Ez az oldal általános tájékoztató, nem adótanácsadás. A saját esetedről kérdezd a könyvelődet. NAV-árak 2026. januártól novemberig. Utolsó frissítés: 2026. november.</p>
+<nav class="links"><a href="km-elszamolas.html">Km-elszámolás</a><a href="utnyilvantartas.html">Útnyilvántartás saját autóhoz</a><a href="index.html">Kezdőlap</a><a href="impresszum.html">Impresszum</a></nav>
+</main>
+<script src="kalkulator.js"></script>
+</body>
+</html>

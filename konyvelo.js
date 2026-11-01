@@ -7,7 +7,7 @@
  * Everything from the server goes through esc(): this page holds a login, and trip purposes,
  * partners and names are typed by clients.
  */
-import { XLSX_MIME, monthWorkbook, payableOf, yearWorkbook } from './workbook.js';
+import { XLSX_MIME, isShareLog, monthWorkbook, payableOf, yearWorkbook } from './workbook.js';
 
 const BASE = 'https://rudnmzhfgnynlmjdrwoy.supabase.co';
 const ANON = 'sb_publishable_Tyxe0cP-kh_mCvH5oCEcsw_qDRYTL8X';
@@ -84,7 +84,7 @@ function monthCard(c, i) {
   return `<div class="card month" data-month="${i}">
     <button class="month-head" aria-expanded="false">
       <span><b>${esc(monthName(c.month))}</b><span class="sub">${esc(c.vehicles?.plate)} · ${esc(people.driverName)} · ${km(s.business_km)} üzleti</span></span>
-      <span class="amount">${huf(payableOf(s))}</span>
+      <span class="amount">${isShareLog(s) ? esc(comma(s.business_share_pct)) + ' % üzleti' : huf(payableOf(s))}</span>
     </button>
     <div class="details">
       <div class="facts">
@@ -95,10 +95,17 @@ function monthCard(c, i) {
         <div><span>Km-óra január 1-jén</span><b>${odo(o.yearStart)}</b></div>
         <div><span>Magán / munkába járás</span><b>${km(s.personal_km)} / ${km(s.commute_km)}</b></div>
       </div>
-      <table class="calc"><tbody>
-        ${money.map(([label, value]) => `<tr><td>${label}</td><td class="num">${huf(value)}</td></tr>`).join('')}
-        <tr class="sum"><td>Kifizetendő összesen</td><td class="num">${huf(payableOf(s))}</td></tr>
-      </tbody></table>
+      ${
+        isShareLog(s)
+          ? `<table class="calc"><tbody>
+              <tr><td>Üzleti km</td><td class="num">${km(s.business_km)}</td></tr>
+              <tr class="sum"><td>Üzleti arány (${s.usage === 'van' ? 'kisteherautó' : 'céges autó'})</td><td class="num">${esc(comma(s.business_share_pct))} %</td></tr>
+            </tbody></table>`
+          : `<table class="calc"><tbody>
+              ${money.map(([label, value]) => `<tr><td>${label}</td><td class="num">${huf(value)}</td></tr>`).join('')}
+              <tr class="sum"><td>Kifizetendő összesen</td><td class="num">${huf(payableOf(s))}</td></tr>
+            </tbody></table>`
+      }
       <h3>Üzleti utak</h3>
       <div class="scroll"><table><thead><tr><th>Dátum</th><th>Honnan → Hová</th><th>Cél / partner</th><th class="num">Km</th></tr></thead><tbody>
       ${(s.lines || [])
@@ -154,6 +161,7 @@ function loginForm(title, text) {
       <button class="primary" type="submit">Belépés</button>
     </form>
     <p class="error hidden" id="login-error"></p>
+    <p class="muted">A belépéssel elfogadod a <a href="aszf.html#konyvelo">feltételeket</a>, és hozzájárulsz, hogy a böngésződ a kilépésig megőrizze a belépésedet. <a href="adatvedelem.html#sutik">Részletek</a></p>
   </div>`;
 }
 
@@ -284,7 +292,7 @@ function dashboardView(clients, demo) {
       <td><a class="row-link" href="${base}${esc(c.id)}">${esc(c.name || 'Névtelen ügyfél')}</a><span class="sub">${esc(c.plates.join(', ') || 'Még nincs lezárt hónap')}</span></td>
       <td><span class="pill ${ok ? 'ok' : 'wait'}">${ok ? 'Lezárva' : isReopened(c, wanted) ? 'Javítás alatt' : 'Hiányzik'}</span></td>
       <td class="num hide-sm">${km(kms)}</td>
-      <td class="num">${huf(total)}</td>
+      <td class="num">${total ? huf(total) : '–'}</td>
     </tr>`;
   };
   const paint = () => {

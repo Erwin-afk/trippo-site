@@ -35,6 +35,14 @@ main.doc h2 { margin-top: 36px; padding-top: 20px; border-top: 1px solid var(--l
 main.doc h2:first-of-type { border-top: 0; padding-top: 0; }
 main.doc li { margin: 6px 0; }
 main.doc nav.links { border-top: 1px solid var(--line); padding-top: 20px; }
+main.doc h2[id] { scroll-margin-top: 80px; }
+@media (max-width: 600px) {
+  table.stack, table.stack tbody, table.stack tr, table.stack td { display: block; }
+  table.stack th { display: none; }
+  table.stack tr { padding: 12px 0; border-bottom: 1px solid var(--line); }
+  table.stack td { border: 0; padding: 2px 0; }
+  table.stack td:first-child { font-weight: 600; }
+}
 
 /* Homepage */
 .wrap { max-width: 1080px; margin: 0 auto; padding: 0 16px; }
