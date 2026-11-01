@@ -97,6 +97,15 @@ body.landing { background: linear-gradient(180deg, var(--card) 0, var(--bg) 620p
 .details { display: none; padding: 0 20px 16px; }
 .month.open .details { display: block; }
 .scroll { overflow-x: auto; }
+.nowrap { white-space: nowrap; }
+.details h3 { font-size: 15px; margin: 20px 0 4px; }
+.facts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px 24px; padding: 4px 0 16px; }
+.facts span { display: block; font-size: 13px; color: var(--muted); }
+.facts b { font-size: 15px; font-weight: 600; }
+.calc { width: 100%; font-size: 15px; }
+.calc td { padding: 8px 0; }
+.calc .sum td { font-weight: 800; font-size: 17px; border-top: 2px solid var(--text); border-bottom: 0; }
+.notice.warn { border-color: #d98a00; }
 .hash { font-family: ui-monospace, Menlo, monospace; font-size: 11px; word-break: break-all; color: var(--muted); }
 .year-tabs { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
 .year-tabs button[aria-pressed="true"] { background: var(--text); color: var(--bg); border-color: var(--text); }
@@ -110,6 +119,7 @@ body.landing { background: linear-gradient(180deg, var(--card) 0, var(--bg) 620p
   .hero h1 { font-size: 30px; }
   .hero .login { order: -1; }
   .stats { grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+  .facts { grid-template-columns: 1fr 1fr; }
   .stat { padding: 12px; }
   .stat b { font-size: 18px; }
   .hide-sm { display: none; }

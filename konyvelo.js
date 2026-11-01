@@ -1,4 +1,3 @@
-'use strict';
 /*
  * Könyvelői portál. Routes live in the URL's #fragment, so nothing secret reaches a server log:
  *   #<64 hex>   a client's link (read-only; a logged-in accountant can add it to their clients)
@@ -8,6 +7,8 @@
  * Everything from the server goes through esc(): this page holds a login, and trip purposes,
  * partners and names are typed by clients.
  */
+import { XLSX_MIME, monthWorkbook, payableOf, yearWorkbook } from './workbook.js';
+
 const BASE = 'https://rudnmzhfgnynlmjdrwoy.supabase.co';
 const ANON = 'sb_publishable_Tyxe0cP-kh_mCvH5oCEcsw_qDRYTL8X';
 const FN = BASE + '/functions/v1/accountant';
@@ -19,8 +20,10 @@ const app = document.getElementById('app');
 const who = document.getElementById('who');
 
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-const huf = (n) => (n == null ? '–' : Math.round(n).toLocaleString('hu-HU') + ' Ft');
-const km = (n) => Math.round(n ?? 0).toLocaleString('hu-HU') + ' km';
+// Grouped by hand: hu-HU leaves four-digit numbers ungrouped, so 1500 would sit next to 73 518.
+const grouped = (n) => String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, '\u00a0');
+const huf = (n) => (n == null ? '–' : grouped(n) + ' Ft');
+const km = (n) => grouped(n ?? 0) + ' km';
 const monthName = (m) => new Date(m.slice(0, 7) + '-01T00:00:00').toLocaleDateString('hu-HU', { year: 'numeric', month: 'long' });
 const monthShort = (m) => new Date(m.slice(0, 7) + '-01T00:00:00').toLocaleDateString('hu-HU', { month: 'long' });
 const show = (html) => {
@@ -55,56 +58,63 @@ async function call(body, auth = true) {
 
 /* ---------- Export ---------- */
 
-// A cell starting with these runs as a formula in Excel, and clients type these texts.
-const cell = (v) => {
-  const s = String(v ?? '');
-  const safe = typeof v === 'string' && /^[=+\-@\t\r]/.test(s) ? "'" + s : s;
-  return '"' + safe.replace(/"/g, '""') + '"';
-};
-
-function csvRows(c) {
-  const s = c.snapshot || {};
-  const rows = [];
-  for (const l of s.lines || []) rows.push([l.date, l.time, l.from, l.to, l.purpose, l.partner, l.km, l.fuelHuf, l.amortizationHuf]);
-  rows.push([monthName(c.month) + ' összesen', '', '', '', '', '', s.business_km, s.fuel_cost_huf, s.amortization_huf]);
-  for (const e of s.expenses || []) rows.push([e.date, e.kind, e.trip, '', e.note, '', '', e.amountHuf, '']);
-  if (s.per_diem) rows.push(['Napidíj', s.per_diem.days.length + ' nap', '', '', '', '', '', s.per_diem.totalHuf, '']);
-  return rows;
-}
-
-function download(name, closes) {
-  const head = ['Dátum', 'Idő', 'Honnan', 'Hová', 'Cél', 'Partner', 'Km', 'Üzemanyag (Ft)', 'Normaköltség (Ft)'];
-  const rows = [head, ...closes.flatMap(csvRows)];
-  const text = '﻿' + rows.map((r) => r.map(cell).join(';')).join('\r\n');
+function download(name, bytes) {
   const a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob([text], { type: 'text/csv;charset=utf-8' }));
-  a.download = name + '.csv';
+  a.href = URL.createObjectURL(new Blob([bytes], { type: XLSX_MIME }));
+  a.download = name + '.xlsx';
   a.click();
   URL.revokeObjectURL(a.href);
 }
 
 /* ---------- Months ---------- */
 
+const comma = (n) => String(n ?? '–').replace('.', ',');
+const odo = (n) => (n == null ? '–' : km(n));
+
 function monthCard(c, i) {
   const s = c.snapshot || {};
   const people = s.people || {};
-  const extra = (s.per_diem ? s.per_diem.totalHuf : 0) + (s.expenses_huf || 0);
+  const o = s.odometer || {};
+  const money = [
+    [`Üzemanyag (${esc(km(s.business_km))} × ${esc(comma(s.norm_l_per_100km))} l/100 km × ${esc(s.price_label)})`, s.fuel_cost_huf],
+    [`Normaköltség (${esc(km(s.business_km))} × ${esc(s.general_norm_huf_per_km)} Ft)`, s.amortization_huf],
+    ...(s.per_diem ? [[`Napidíj (${esc(s.per_diem.days.length)} nap × ${esc(huf(s.per_diem.hufPerDay))})`, s.per_diem.totalHuf]] : []),
+    ...((s.expenses || []).length ? [[`Számla alapján (${esc(s.expenses.length)} tétel)`, s.expenses_huf]] : []),
+  ];
   return `<div class="card month" data-month="${i}">
     <button class="month-head" aria-expanded="false">
       <span><b>${esc(monthName(c.month))}</b><span class="sub">${esc(c.vehicles?.plate)} · ${esc(people.driverName)} · ${km(s.business_km)} üzleti</span></span>
-      <span class="amount">${huf(s.total_huf)}</span>
+      <span class="amount">${huf(payableOf(s))}</span>
     </button>
     <div class="details">
-      <p class="muted">Norma: ${esc(s.norm_l_per_100km)} l/100 km · NAV-ár: ${esc(s.price_label)} · ${esc(s.general_norm_huf_per_km)} Ft/km<br>
-      Km-óra: ${esc(c.start_odometer)} → ${esc(c.end_odometer)} · Lezárva: ${esc(new Date(c.closed_at).toLocaleString('hu-HU'))}
-      ${extra ? '<br>Napidíj és számla alapján: ' + huf(extra) : ''}</p>
+      <div class="facts">
+        <div><span>Kiküldött</span><b>${esc(people.driverName || '–')}</b></div>
+        <div><span>Kiküldő</span><b>${esc(people.employerName || '–')}</b></div>
+        <div><span>Gépkocsi</span><b>${esc(c.vehicles?.plate)}${c.vehicles?.make_model ? ' · ' + esc(c.vehicles.make_model) : ''}</b></div>
+        <div><span>Km-óra a hónapban</span><b>${odo(c.start_odometer)} → ${odo(c.end_odometer)}</b></div>
+        <div><span>Km-óra január 1-jén</span><b>${odo(o.yearStart)}</b></div>
+        <div><span>Magán / munkába járás</span><b>${km(s.personal_km)} / ${km(s.commute_km)}</b></div>
+      </div>
+      <table class="calc"><tbody>
+        ${money.map(([label, value]) => `<tr><td>${label}</td><td class="num">${huf(value)}</td></tr>`).join('')}
+        <tr class="sum"><td>Kifizetendő összesen</td><td class="num">${huf(payableOf(s))}</td></tr>
+      </tbody></table>
+      <h3>Üzleti utak</h3>
       <div class="scroll"><table><thead><tr><th>Dátum</th><th>Honnan → Hová</th><th>Cél / partner</th><th class="num">Km</th></tr></thead><tbody>
       ${(s.lines || [])
-        .map((l) => `<tr><td>${esc(l.date)}<span class="sub">${esc(l.time)}</span></td><td>${esc(l.from)} → ${esc(l.to)}</td><td>${esc(l.purpose)}${l.partner ? ' · ' + esc(l.partner) : ''}</td><td class="num">${esc(l.km)}</td></tr>`)
-        .join('')}
+        .map((l) => `<tr><td class="nowrap">${esc(l.date)}<span class="sub">${esc(l.time)}</span></td><td>${esc(l.from)} → ${esc(l.to)}</td><td>${esc(l.purpose)}${l.partner ? ' · ' + esc(l.partner) : ''}</td><td class="num">${esc(l.km)}</td></tr>`)
+        .join('') || '<tr><td colspan="4" class="muted">Ebben a hónapban nem volt üzleti út.</td></tr>'}
       </tbody></table></div>
-      <p class="hash">Ellenőrző kód (SHA-256): ${esc(c.snapshot_hash)}</p>
-      <div class="actions"><button data-csv="${i}">Letöltés Excelbe (CSV)</button></div>
+      ${
+        (s.expenses || []).length
+          ? `<h3>Számla alapján</h3>
+            <div class="scroll"><table><thead><tr><th>Dátum</th><th>Tétel</th><th>Út / megjegyzés</th><th class="num">Összeg</th></tr></thead><tbody>
+            ${s.expenses.map((e) => `<tr><td class="nowrap">${esc(e.date)}</td><td>${esc(e.kind)}</td><td>${esc(e.trip)}${e.note ? ' · ' + esc(e.note) : ''}</td><td class="num">${huf(e.amountHuf)}</td></tr>`).join('')}
+            </tbody></table></div>`
+          : ''
+      }
+      <p class="hash">Lezárva: ${esc(new Date(c.closed_at).toLocaleString('hu-HU'))}<br>Ellenőrző kód (SHA-256): ${esc(c.snapshot_hash)}</p>
+      <div class="actions"><button class="primary" data-xlsx="${i}">Excel letöltése</button></div>
     </div>
   </div>`;
 }
@@ -116,12 +126,17 @@ function bindMonths(closes, fileBase) {
       b.setAttribute('aria-expanded', String(open));
     }),
   );
-  document.querySelectorAll('[data-csv]').forEach((b) =>
+  document.querySelectorAll('[data-xlsx]').forEach((b) =>
     b.addEventListener('click', () => {
-      const c = closes[Number(b.dataset.csv)];
-      download(`${fileBase}-${c.month.slice(0, 7)}`, [c]);
+      const c = closes[Number(b.dataset.xlsx)];
+      download(`${fileBase}-${c.month.slice(0, 7)}`, monthWorkbook(c));
     }),
   );
+}
+
+/** Months the client took back to fix: what the accountant has of them may no longer stand. */
+function reopenedNote(months) {
+  return months?.length ? `<div class="notice warn"><p><b>${esc(months.map(monthName).join(', '))}:</b> az ügyfél javításra újranyitotta. Amint újra lezárja, itt megjelenik.</p></div>` : '';
 }
 
 /* ---------- Login ---------- */
@@ -198,7 +213,7 @@ function loginView() {
       <div class="features">
         <div><h3>Ki zárta le a hónapot?</h3><p>Egy pillantásra látod, kitől van meg a múlt hónap, és kire kell még várni.</p></div>
         <div><h3>Utólag nem módosítható</h3><p>A lezárt hónap befagy; az ellenőrző kód igazolja, hogy az adat azóta nem változott.</p></div>
-        <div><h3>Kész az Excelbe</h3><p>Havi vagy éves CSV, NAV-árral, normával és km-óra-állással.</p></div>
+        <div><h3>Kész az Excelben</h3><p>Havi vagy éves Excel-fájl: kifizetendő összeg, útlista, költségek, NAV-ár és km-óra.</p></div>
         <div><h3>Csak amit megosztanak</h3><p>Kizárólag a lezárt hónapokat látod, és az ügyfeled bármikor visszavonhatja.</p></div>
       </div>
     </section>
@@ -218,6 +233,8 @@ function loginView() {
 function statusOf(client, wanted) {
   return client.months.some((m) => m.month.slice(0, 7) === wanted.slice(0, 7));
 }
+
+const isReopened = (client, wanted) => (client.reopened || []).some((m) => m.slice(0, 7) === wanted.slice(0, 7));
 
 function dashboardView(clients, demo) {
   const wanted = lastFullMonth();
@@ -243,7 +260,7 @@ function dashboardView(clients, demo) {
             </div>
           </div>
           <div class="list"><table>
-            <thead><tr><th>Ügyfél</th><th>${esc(monthShort(wanted))}</th><th class="num hide-sm">${year} üzleti km</th><th class="num">${year} összesen</th></tr></thead>
+            <thead><tr><th>Ügyfél</th><th>${esc(monthShort(wanted))}</th><th class="num hide-sm">${year} üzleti km</th><th class="num">${year} kifizetendő</th></tr></thead>
             <tbody id="rows"></tbody>
           </table></div>`
         : `<div class="card empty">
@@ -261,11 +278,11 @@ function dashboardView(clients, demo) {
   const row = (c) => {
     const ok = statusOf(c, wanted);
     const months = c.months.filter((m) => m.month.startsWith(String(year)));
-    const total = months.reduce((s, m) => s + (m.total || 0), 0);
+    const total = months.reduce((s, m) => s + (m.payable ?? m.total ?? 0), 0);
     const kms = months.reduce((s, m) => s + (m.km || 0), 0);
     return `<tr data-id="${esc(c.id)}">
-      <td><a class="row-link" href="${base}${esc(c.id)}">${esc(c.name || 'Névtelen ügyfél')}</a><span class="sub">${esc(c.plates.join(', ') || 'Nincs lezárt hónap')}</span></td>
-      <td><span class="pill ${ok ? 'ok' : 'wait'}">${ok ? 'Lezárva' : 'Hiányzik'}</span></td>
+      <td><a class="row-link" href="${base}${esc(c.id)}">${esc(c.name || 'Névtelen ügyfél')}</a><span class="sub">${esc(c.plates.join(', ') || 'Még nincs lezárt hónap')}</span></td>
+      <td><span class="pill ${ok ? 'ok' : 'wait'}">${ok ? 'Lezárva' : isReopened(c, wanted) ? 'Javítás alatt' : 'Hiányzik'}</span></td>
       <td class="num hide-sm">${km(kms)}</td>
       <td class="num">${huf(total)}</td>
     </tr>`;
@@ -293,12 +310,12 @@ function dashboardView(clients, demo) {
 
 /* ---------- One client ---------- */
 
-function clientView(id, name, closes, demo) {
+function clientView(id, name, closes, demo, reopened = []) {
   const people = closes[0]?.snapshot?.people || {};
   const title = name || people.driverName || 'Névtelen ügyfél';
   const years = [...new Set(closes.map((c) => c.month.slice(0, 4)))];
   let year = years[0];
-  const file = title.replace(/[^\p{L}\p{N}]+/gu, '-').toLowerCase();
+  const file = title.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^A-Za-z0-9]+/g, '-').replace(/^-|-$/g, '').toLowerCase() || 'ugyfel';
 
   const paint = () => {
     const shown = closes.filter((c) => c.month.startsWith(year));
@@ -307,15 +324,16 @@ function clientView(id, name, closes, demo) {
       <div class="head">
         <h1>${esc(title)}</h1>
         <div class="actions">
-          ${closes.length ? '<button id="year-csv">Éves CSV</button><button id="print">Nyomtatás / PDF</button>' : ''}
+          ${closes.length ? '<button class="primary" id="year-xlsx">Éves Excel</button><button id="print">Nyomtatás / PDF</button>' : ''}
           ${demo ? '' : '<button id="rename">Átnevezés</button><button id="remove" class="danger">Eltávolítás</button>'}
         </div>
       </div>
+      ${reopenedNote(reopened)}
       ${
         closes.length
           ? `${years.length > 1 ? `<div class="year-tabs">${years.map((y) => `<button data-year="${esc(y)}" aria-pressed="${y === year}">${esc(y)}</button>`).join('')}</div>` : ''}
             <div class="stats">
-              <div class="stat"><b>${huf(sum((s) => s.total_huf))}</b><span>${esc(year)} összesen</span></div>
+              <div class="stat"><b>${huf(sum(payableOf))}</b><span>${esc(year)} kifizetendő</span></div>
               <div class="stat"><b>${km(sum((s) => s.business_km))}</b><span>üzleti km</span></div>
               <div class="stat"><b>${shown.length}</b><span>lezárt hónap</span></div>
             </div>
@@ -329,7 +347,7 @@ function clientView(id, name, closes, demo) {
         paint();
       }),
     );
-    on('#year-csv', 'click', () => download(`${file}-${year}`, shown));
+    on('#year-xlsx', 'click', () => download(`${file}-${year}`, yearWorkbook(shown, year)));
     on('#print', 'click', () => window.print());
     on('#rename', 'click', async () => {
       const next = window.prompt('Az ügyfél neve (csak te látod):', title);
@@ -357,9 +375,14 @@ const LINK_ERRORS = {
 async function linkView(token) {
   const s = await session();
   let closes = null;
+  let reopened = [];
+  let owner = null;
   let problem = null;
   try {
-    closes = (await call({ token }, false)).closes || [];
+    const shared = await call({ token }, false);
+    closes = shared.closes || [];
+    reopened = shared.reopened || [];
+    owner = shared.owner;
   } catch (e) {
     problem = e.message;
   }
@@ -378,7 +401,7 @@ async function linkView(token) {
     return;
   }
 
-  const name = closes[0]?.snapshot?.people?.driverName;
+  const name = closes[0]?.snapshot?.people?.driverName || owner;
   show(`<div class="notice">
       <p><b>${esc(name || 'Ügyfél')}</b> megosztotta veled a lezárt hónapjait.</p>
       ${s ? '<button class="primary" id="claim">Hozzáadás az ügyfeleimhez</button>' : '<button class="primary" id="want-login">Belépés és hozzáadás</button>'}
@@ -386,6 +409,7 @@ async function linkView(token) {
     <div id="login-slot"></div>
     <p class="error hidden" id="claim-error"></p>
     <div class="head"><h1>${esc(name || 'Lezárt hónapok')}</h1><div class="actions"><button id="print">Nyomtatás / PDF</button></div></div>
+    ${reopenedNote(reopened)}
     ${closes.length ? closes.map(monthCard).join('') : '<div class="card empty"><h2>Még nincs lezárt hónap</h2><p class="muted">Amint az ügyfeled lezár egy hónapot, itt megjelenik.</p></div>'}`);
   bindMonths(closes, 'utnyilvantartas');
   on('#print', 'click', () => window.print());
@@ -394,11 +418,15 @@ async function linkView(token) {
     bindLogin();
     document.getElementById('email').focus();
   });
-  on('#claim', 'click', async () => {
+  on('#claim', 'click', async (ev) => {
+    ev.target.disabled = true;
+    ev.target.textContent = 'Hozzáadás…';
     try {
       const { id } = await call({ action: 'claim', token });
       location.hash = 'c/' + id;
     } catch (e) {
+      ev.target.disabled = false;
+      ev.target.textContent = 'Hozzáadás az ügyfeleimhez';
       const box = document.getElementById('claim-error');
       box.textContent = LINK_ERRORS[e.message] || 'Nem sikerült hozzáadni. Próbáld újra.';
       box.classList.remove('hidden');
@@ -408,41 +436,74 @@ async function linkView(token) {
 
 /* ---------- Demo (made-up data) ---------- */
 
+const NORM = 8.6;
+const PRICE = 605;
+const fuelOf = (kms) => Math.round((kms * NORM * PRICE) / 100);
+const DAYS = ['vasárnap', 'hétfő', 'kedd', 'szerda', 'csütörtök', 'péntek', 'szombat'];
+
 function demoData() {
-  const line = (date, from, to, purpose, partner, kmv) => ({ date, time: '08:10–08:45', from, to, purpose, partner, km: kmv, fuelHuf: Math.round(kmv * 57), amortizationHuf: kmv * 15 });
+  const HOME = 'Budapest, Fő utca 1.';
   const months = (back) => {
     const d = new Date();
     d.setDate(1);
     d.setMonth(d.getMonth() - back);
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-01`;
   };
-  const close = (month, driverName, plate, kms) => ({
-    month,
-    closed_at: month.slice(0, 8) + '28T17:00:00Z',
-    start_odometer: 84210,
-    end_odometer: 84210 + kms + 240,
-    snapshot_hash: 'minta0000000000000000000000000000000000000000000000000000000000',
-    vehicles: { plate },
-    snapshot: {
-      people: { driverName },
-      business_km: kms,
-      total_huf: kms * 72,
-      fuel_cost_huf: kms * 57,
-      amortization_huf: kms * 15,
-      norm_l_per_100km: 9.5,
-      price_label: 'NAV',
-      general_norm_huf_per_km: 15,
-      lines: [line(month.slice(0, 8) + '04', 'Budapest, Fő utca 1.', 'Győr, Baross út 2.', 'Ügyféltalálkozó', 'Minta Bt.', Math.round(kms / 2)), line(month.slice(0, 8) + '19', 'Budapest, Fő utca 1.', 'Szeged, Kárász u. 5.', 'Helyszíni felmérés', 'Példa Kft.', Math.round(kms / 2))],
-    },
-  });
+  const dayText = (month, day) => {
+    const d = new Date(`${month.slice(0, 8)}${String(day).padStart(2, '0')}T12:00:00`);
+    const name = DAYS[d.getDay()];
+    return `${name[0].toUpperCase()}${name.slice(1)}, ${d.toLocaleDateString('hu-HU', { month: 'long' })} ${day}.`;
+  };
+  const close = (month, driverName, employerName, plate, scale) => {
+    const line = (day, time, from, to, purpose, partner, kms) => ({ date: dayText(month, day), time, from, to, purpose, partner, km: kms, fuelHuf: fuelOf(kms), amortizationHuf: kms * 15 });
+    const trip = (day, to, purpose, partner, kms) => [line(day, '08:10–09:45', HOME, to, purpose, partner, kms), line(day, '14:30–16:05', to, HOME, 'Visszaút', partner, kms)];
+    const lines = [
+      ...trip(4, 'Győr, Baross Gábor út 2.', 'Ügyféltalálkozó', 'Minta Bt.', Math.round(124 * scale)),
+      ...trip(12, 'Kecskemét, Rákóczi út 5.', 'Helyszíni felmérés', 'Példa Kft.', Math.round(86 * scale)),
+      ...trip(19, 'Szeged, Kárász utca 5.', 'Szerződés aláírása', 'Teszt Zrt.', Math.round(172 * scale)),
+      ...trip(26, 'Érd, Budai út 14.', 'Árubemutató', 'Minta Bt.', Math.round(24 * scale)),
+    ];
+    const businessKm = lines.reduce((s, l) => s + l.km, 0);
+    const fuel = fuelOf(businessKm);
+    const amortization = businessKm * 15;
+    const expenses = [{ date: dayText(month, 19), kind: 'Parkolás', trip: 'Budapest → Szeged', note: 'Kárász utca', amountHuf: 2400 }, { date: dayText(month, 19), kind: 'E-matrica', trip: 'Budapest → Szeged', note: 'M5 megyei', amountHuf: 6460 }];
+    return {
+      month,
+      closed_at: month.slice(0, 8) + '28T17:00:00Z',
+      start_odometer: 84210,
+      end_odometer: 84210 + businessKm + 240,
+      snapshot_hash: 'minta0000000000000000000000000000000000000000000000000000000000',
+      vehicles: { plate, make_model: 'Škoda Octavia' },
+      snapshot: {
+        people: { driverName, employerName },
+        odometer: { start: 84210, end: 84210 + businessKm + 240, yearStart: 72350, yearEnd: null },
+        fuel: 'petrol',
+        engine_ccm: 1498,
+        business_km: businessKm,
+        personal_km: 180,
+        commute_km: 60,
+        total_huf: fuel + amortization,
+        fuel_cost_huf: fuel,
+        amortization_huf: amortization,
+        norm_l_per_100km: NORM,
+        fuel_price_huf_per_l: PRICE,
+        price_label: `${PRICE} Ft/l (NAV)`,
+        general_norm_huf_per_km: 15,
+        per_diem: { days: [`${month.slice(0, 8)}04`, `${month.slice(0, 8)}19`], hufPerDay: 500, totalHuf: 1000 },
+        expenses,
+        expenses_huf: 8860,
+        lines,
+      },
+    };
+  };
   const people = [
-    ['1', 'Kiss Példa Anna', 'AAA-111', 640, 0],
-    ['2', 'Minta Építő Kft.', 'BBB-222', 1180, 0],
-    ['3', 'Nagy Teszt Péter', 'CCC-333', 420, 1],
+    ['1', 'Kiss Példa Anna', 'Példa Trade Kft.', 'AAA-111', 0.6, 0],
+    ['2', 'Minta Építő Kft.', 'Minta Építő Kft.', 'BBB-222', 1, 0],
+    ['3', 'Nagy Teszt Péter', 'Teszt Szerviz Bt.', 'CCC-333', 0.4, 1],
   ];
-  const clients = people.map(([id, name, plate, kms, skip]) => {
-    const closes = [1, 2, 3].slice(skip).map((b) => close(months(b), name, plate, kms));
-    return { id, name, plates: [plate], closes, months: closes.map((c) => ({ month: c.month, total: c.snapshot.total_huf, km: c.snapshot.business_km })) };
+  const clients = people.map(([id, name, employer, plate, scale, skip]) => {
+    const closes = [1, 2, 3].slice(skip).map((b) => close(months(b), name, employer, plate, scale));
+    return { id, name, plates: [plate], closes, months: closes.map((c) => ({ month: c.month, total: c.snapshot.total_huf, payable: payableOf(c.snapshot), km: c.snapshot.business_km })) };
   });
   return clients;
 }
@@ -475,8 +536,8 @@ async function route() {
     if (!s) return loginView();
     const one = hash.match(/^c\/(.+)$/);
     if (one) {
-      const { name, closes } = await call({ action: 'client', id: one[1] });
-      return clientView(one[1], name, closes, false);
+      const { name, closes, reopened, owner } = await call({ action: 'client', id: one[1] });
+      return clientView(one[1], name || owner, closes, false, reopened);
     }
     const { clients } = await call({ action: 'clients' });
     dashboardView(clients, false);
