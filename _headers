@@ -10,3 +10,11 @@
 /konyvelo
   Cache-Control: no-store
   Referrer-Policy: no-referrer
+
+/megerosites.html
+  Cache-Control: no-store
+  Referrer-Policy: no-referrer
+
+/megerosites
+  Cache-Control: no-store
+  Referrer-Policy: no-referrer

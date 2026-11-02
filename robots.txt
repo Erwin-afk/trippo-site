@@ -1,4 +1,5 @@
 User-agent: *
 Allow: /
+Disallow: /megerosites
 
 Sitemap: https://trippo.hu/sitemap.xml

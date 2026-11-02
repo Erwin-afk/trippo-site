@@ -120,7 +120,7 @@ function monthCard(c, i) {
             </tbody></table></div>`
           : ''
       }
-      <p class="hash">Lezárva: ${esc(new Date(c.closed_at).toLocaleString('hu-HU'))}<br>Ellenőrző kód (SHA-256): ${esc(c.snapshot_hash)}</p>
+      <p class="hash">Lezárva: ${esc(new Date(c.closed_at).toLocaleString('hu-HU'))}${c.versions ? ` · Javított változat, ${esc(c.versions)} korábbi lezárás után` : ''}<br>Ellenőrző kód (SHA-256): ${esc(c.snapshot_hash)}</p>
       <div class="actions"><button class="primary" data-xlsx="${i}">Excel letöltése</button></div>
     </div>
   </div>`;
