@@ -8,7 +8,7 @@
  */
 
 const MONTHS = ['január', 'február', 'március', 'április', 'május', 'június', 'július', 'augusztus', 'szeptember', 'október', 'november', 'december'];
-const FUEL = { petrol: 'benzin', diesel: 'dízel', hybrid_petrol: 'benzin-hibrid', hybrid_diesel: 'dízel-hibrid', lpg: 'LPG', electric: 'elektromos' };
+const FUEL = { petrol: 'benzin', diesel: 'dízel', hybrid_petrol: 'benzin-hibrid', hybrid_diesel: 'dízel-hibrid', plugin_petrol: 'tölthető benzin-hibrid', plugin_diesel: 'tölthető dízel-hibrid', lpg: 'LPG', electric: 'elektromos' };
 
 export const XLSX_MIME = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
 
