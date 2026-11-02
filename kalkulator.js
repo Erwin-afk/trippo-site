@@ -27,7 +27,7 @@ const number = (id) => Number($(id).value.replace(/\D/g, '')) || 0;
 /** Decilitres per 100 km, so the money stays in whole numbers. */
 function normOf(fuel, ccm) {
   if (fuel === 'diesel') return ccm <= 1500 ? 57 : ccm <= 2000 ? 67 : ccm <= 3000 ? 76 : 95;
-  return ccm <= 1000 ? 76 : ccm <= 1500 ? 86 : ccm <= 2000 ? 95 : ccm <= 3000 ? 114 : 136;
+  return ccm <= 1000 ? 76 : ccm <= 1500 ? 86 : ccm <= 2000 ? 95 : ccm <= 3000 ? 114 : 133;
 }
 
 function paintKm() {
