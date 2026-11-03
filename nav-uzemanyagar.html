@@ -29,11 +29,12 @@
 </header>
 <main class="doc">
 <h1>NAV üzemanyagárak 2026</h1>
-<p class="lead-doc">A NAV minden hónapra közzétesz egy üzemanyagárat. Ezzel számla nélkül elszámolhatod az üzleti utak üzemanyagát. 2026 novemberében <b>639 Ft/l</b> a benzin, <b>712 Ft/l</b> a dízel és <b>365 Ft/l</b> az LPG.</p>
+<p class="lead-doc">A NAV minden hónapra közzétesz egy üzemanyagárat. Ezzel számla nélkül elszámolhatod az üzleti utak üzemanyagát. <span id="lead-month">2026 novemberében</span> <b id="lead-p">639 Ft/l</b> a benzin, <b id="lead-d">712 Ft/l</b> a dízel és <b id="lead-l">365 Ft/l</b> az LPG.</p>
 <h2>Havi árak 2026-ban</h2>
 <p>Az árak forint/liter értékek. A benzin a 95-ös ólmozatlan.</p>
 <table>
-<tr><th>Hónap</th><th>Benzin</th><th>Dízel</th><th>LPG</th></tr>
+<thead><tr><th>Hónap</th><th>Benzin</th><th>Dízel</th><th>LPG</th></tr></thead>
+<tbody id="price-rows">
 <tr><td>November</td><td>639</td><td>712</td><td>365</td></tr>
 <tr><td>Október</td><td>605</td><td>681</td><td>356</td></tr>
 <tr><td>Szeptember</td><td>604</td><td>667</td><td>351</td></tr>
@@ -45,18 +46,19 @@
 <tr><td>Március</td><td>564</td><td>578</td><td>324</td></tr>
 <tr><td>Február</td><td>560</td><td>572</td><td>324</td></tr>
 <tr><td>Január</td><td>572</td><td>586</td><td>328</td></tr>
+</tbody>
 </table>
-<p>Forrás: <a href="https://nav.gov.hu/ugyfeliranytu/uzemanyag/2026-ban-alkalmazhato-uzemanyagarak">NAV, 2026-ban alkalmazható üzemanyagárak</a>. A keverék és a CNG ára is ott található. A decemberi árat akkor tesszük ide, amikor a NAV közzéteszi.</p>
+<p>Forrás: <a href="https://nav.gov.hu/ugyfeliranytu/uzemanyag/2026-ban-alkalmazhato-uzemanyagarak">NAV, 2026-ban alkalmazható üzemanyagárak</a>. A keverék és a CNG ára is ott található. Az új hónap ára a NAV közzététele után magától megjelenik itt.</p>
 <h2>Mi az a védett ár?</h2>
 <p>2026 májusától júliusig a NAV a benzinre és a dízelre két árat közölt: a piaci árat és a védett árat. Hogy az elszámoláshoz melyik kell, azt kérdezd meg a könyvelődtől.</p>
 <h2>Hogyan áll elő az ár?</h2>
 <p>A NAV a tárgyhónapot megelőző hónap első napjának fogyasztói áraiból számol. Három hazai forgalmazó árának átlagát veszi, kerekíti, és hozzáad 1 forintot. A novemberi ár tehát az október 1-jei árakat követi.</p>
 <h2>Hogyan számolj vele?</h2>
-<p>Üzemanyag: üzleti km × fogyasztási norma ÷ 100 × NAV-ár. Példa 1000 üzleti km-re, 1501–2000 cm³-es benzines autóval, novemberi árral:</p>
+<p>Üzemanyag: üzleti km × fogyasztási norma ÷ 100 × NAV-ár. Példa 1000 üzleti km-re, 1501–2000 cm³-es benzines autóval, <span id="ex-month">novemberi</span> árral:</p>
 <ul>
-<li>Üzemanyag: 1000 × 9,5 ÷ 100 × 639 = 60 705 Ft</li>
+<li>Üzemanyag: 1000 × 9,5 ÷ 100 × <span id="ex-price">639</span> = <span id="ex-fuel">60 705 Ft</span></li>
 <li>Autóhasználat: 1000 × 15 = 15 000 Ft</li>
-<li>Összesen: <b>75 705 Ft</b></li>
+<li>Összesen: <b id="ex-total">75 705 Ft</b></li>
 </ul>
 <h2>NAV-ár vagy számla?</h2>
 <ul>
@@ -74,5 +76,7 @@
 <p class="muted">Ez az oldal általános tájékoztató, nem adótanácsadás. A saját esetedről kérdezd a könyvelődet. Utolsó frissítés: 2026. november.</p>
 <nav class="links"><a href="utnyilvantartas.html">Útnyilvántartás saját autóhoz</a><a href="km-elszamolas.html">Km-elszámolás</a><a href="kalkulator.html">Kalkulátorok</a><a href="index.html">Kezdőlap</a><a href="impresszum.html">Impresszum</a></nav>
 </main>
+<script src="nav-prices.js"></script>
+<script src="uzemanyagar.js"></script>
 </body>
 </html>

@@ -62,11 +62,12 @@ document.addEventListener('DOMContentLoaded', () => {
   ).observe(film);
 });
 
-/* Savings slider: same sum as the app, with the latest NAV price (update with kalkulator.js). */
+/* Savings slider: same sum as the app, with the latest NAV price (live from nav-prices.js). */
 document.addEventListener('DOMContentLoaded', () => {
   const km = document.getElementById('saver-km');
   const car = document.getElementById('saver-car');
   if (!km || !car) return;
+  // Printed fallback until the live prices arrive.
   const PRICE = { p: 639, d: 712 };
   const RATE = 15;
   const money = (n) => String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, '\u00a0');
@@ -81,4 +82,14 @@ document.addEventListener('DOMContentLoaded', () => {
   km.addEventListener('input', paint);
   car.addEventListener('change', paint);
   paint();
+  if (!window.navPrices) return;
+  window.navPrices.then((months) => {
+    if (!months) return;
+    const latest = months[0];
+    PRICE.p = window.navApplied(latest, 'petrol');
+    PRICE.d = window.navApplied(latest, 'diesel');
+    const label = document.getElementById('saver-price-month');
+    if (label) label.textContent = `${latest.month.slice(0, 4)}. ${window.navMonth(latest.month, 'adjective')}`;
+    paint();
+  });
 });
