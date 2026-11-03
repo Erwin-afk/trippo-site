@@ -316,6 +316,8 @@ function summarySheet(c) {
     { cells: [] },
     section('Adatok'),
     text('Kiküldött (gépkocsivezető)', s.people?.driverName),
+    // Required on the kiküldetési rendelvény; Trippo never stores it, so it's filled in by hand.
+    text('Kiküldött adóazonosító jele', ''),
     text('Kiküldő (munkáltató)', s.people?.employerName),
     text('Rendszám', c.vehicles?.plate),
     text('Gépkocsi', vehicleText(c)),
