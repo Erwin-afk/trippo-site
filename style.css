@@ -210,6 +210,11 @@ main.doc { animation: fade .35s ease both; }
 .saver-result p { font-size: 13px; line-height: 1.45; margin: 4px 0 0; opacity: .9; color: inherit; }
 .saver-result a { color: inherit; }
 .compare-wrap { max-width: 860px; margin: 24px auto 16px; background: var(--card); border: 1px solid var(--line); border-radius: 24px; overflow: hidden; }
+/* A table too wide for a phone scrolls sideways, with its row labels kept in view. */
+.compare-wrap.wide { overflow-x: auto; }
+.swipe-hint { display: none; margin-top: 0; }
+.compare-wrap.wide .compare { min-width: 600px; }
+.compare-wrap.wide tbody th, .compare-wrap.wide thead th:first-child { position: sticky; left: 0; z-index: 1; background: var(--card); }
 .compare { width: 100%; border-collapse: collapse; font-size: 16px; }
 .compare th, .compare td { padding: 15px 20px; text-align: left; border: 0; border-bottom: 1px solid var(--line); vertical-align: top; }
 .compare tr:last-child th, .compare tr:last-child td { border-bottom: 0; }
@@ -225,5 +230,6 @@ main.doc { animation: fade .35s ease both; }
   .saver { grid-template-columns: 1fr; gap: 24px; padding: 24px 20px; }
   .saver-result b { font-size: 40px; }
   .compare { font-size: 14px; }
+  .swipe-hint { display: block; }
   .compare th, .compare td { padding: 12px 10px; }
 }
