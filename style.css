@@ -180,10 +180,19 @@ main.doc { animation: fade .35s ease both; }
 .saver { display: grid; grid-template-columns: 1.15fr .85fr; gap: 40px; align-items: stretch; background: var(--card); border: 1px solid var(--line); border-radius: 28px; padding: 40px; }
 .saver-label { display: block; font-size: 15px; font-weight: 600; margin: 18px 0 8px; }
 .saver-label b { color: var(--accent); font-variant-numeric: tabular-nums; }
-.saver input[type="range"] { width: 100%; height: 32px; margin: 0; accent-color: var(--accent); cursor: pointer; }
+/* The track fills up to the thumb (--fill, set by home.js); the thumb is a ringed dot. */
+.saver input[type="range"] { --fill: 31%; --rest: color-mix(in srgb, var(--muted) 28%, transparent); width: 100%; height: 36px; margin: 2px 0 0; background: transparent; cursor: pointer; -webkit-appearance: none; appearance: none; touch-action: pan-y; }
+.saver input[type="range"]::-webkit-slider-runnable-track { height: 10px; border-radius: 999px; background: linear-gradient(90deg, var(--accent) var(--fill), var(--rest) var(--fill)); }
+.saver input[type="range"]::-moz-range-track { height: 10px; border-radius: 999px; background: var(--rest); }
+.saver input[type="range"]::-moz-range-progress { height: 10px; border-radius: 999px; background: var(--accent); }
+.saver input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; box-sizing: border-box; width: 28px; height: 28px; margin-top: -9px; border-radius: 50%; background: var(--card); border: 4px solid var(--accent); box-shadow: 0 4px 14px -3px rgba(15, 20, 25, .45); transition: transform .15s ease, box-shadow .15s ease; }
+.saver input[type="range"]::-moz-range-thumb { box-sizing: border-box; width: 28px; height: 28px; border-radius: 50%; background: var(--card); border: 4px solid var(--accent); box-shadow: 0 4px 14px -3px rgba(15, 20, 25, .45); transition: transform .15s ease, box-shadow .15s ease; }
+.saver input[type="range"]:hover::-webkit-slider-thumb, .saver input[type="range"]:active::-webkit-slider-thumb { transform: scale(1.12); box-shadow: 0 0 0 8px color-mix(in srgb, var(--accent) 22%, transparent), 0 4px 14px -3px rgba(15, 20, 25, .45); }
+.saver input[type="range"]:hover::-moz-range-thumb, .saver input[type="range"]:active::-moz-range-thumb { transform: scale(1.12); box-shadow: 0 0 0 8px color-mix(in srgb, var(--accent) 22%, transparent), 0 4px 14px -3px rgba(15, 20, 25, .45); }
+.saver-scale { display: flex; justify-content: space-between; color: var(--muted); font-size: 13px; font-variant-numeric: tabular-nums; margin-top: 2px; }
 .saver select { font: inherit; width: 100%; padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--bg); color: var(--text); }
 .saver-result { background: var(--accent); color: var(--on-accent); border-radius: 22px; padding: 28px; display: flex; flex-direction: column; justify-content: center; }
-.saver-result span { font-size: 15px; font-weight: 600; opacity: .88; }
+.saver-result > span { font-size: 15px; font-weight: 600; opacity: .88; }
 .saver-result b { font-size: 46px; line-height: 1.1; letter-spacing: -.02em; font-variant-numeric: tabular-nums; margin-bottom: 14px; white-space: nowrap; }
 .saver-result b.small { font-size: 28px; }
 .saver-result p { font-size: 13px; line-height: 1.45; margin: 4px 0 0; opacity: .9; color: inherit; }
