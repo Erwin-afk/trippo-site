@@ -20,6 +20,7 @@
 <link rel="stylesheet" href="style.css">
 <script src="nav-prices.js"></script>
 <script src="home.js"></script>
+<script src="signup.js"></script>
 <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Organization","@id":"https://trippo.hu/#org","name":"Trippo","url":"https://trippo.hu","logo":"https://trippo.hu/images/logo.png"},{"@type":"WebSite","@id":"https://trippo.hu/#site","name":"Trippo","url":"https://trippo.hu","inLanguage":"hu","publisher":{"@id":"https://trippo.hu/#org"}},{"@type":"SoftwareApplication","name":"Trippo","applicationCategory":"BusinessApplication","operatingSystem":"iOS","inLanguage":"hu","url":"https://trippo.hu","image":"https://trippo.hu/images/og.jpg","description":"Automatikus útnyilvántartás és kiküldetési rendelvény iPhone-ra. A Trippo magától rögzíti az utaidat, hónap végén pedig kész a PDF és az Excel a könyvelőnek.","offers":[{"@type":"Offer","name":"Havi","price":"1990","priceCurrency":"HUF"},{"@type":"Offer","name":"Éves","price":"19900","priceCurrency":"HUF"}],"publisher":{"@id":"https://trippo.hu/#org"}},{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Nem kell elindítanom semmit?","acceptedAnswer":{"@type":"Answer","text":"Nem. A Trippo a háttérben rögzít, ha a helyhozzáférés „Mindig” értékre van állítva. Te csak besorolod az utakat."}},{"@type":"Question","name":"Sok akkut használ?","acceptedAnswer":{"@type":"Answer","text":"A pontos útvonalért a GPS folyamatosan fut, ezért több akkut használ, mint a legtöbb app. Hosszabb úton tartsd töltőn a telefont."}},{"@type":"Question","name":"Mi történik a magánutakkal?","acceptedAnswer":{"@type":"Answer","text":"A magánútként megjelölt utak útvonala, címei és megállói a telefonodon maradnak. A szerverünkre csak a km és az időpont kerül."}},{"@type":"Question","name":"Mi van, ha kimarad a GPS?","acceptedAnswer":{"@type":"Answer","text":"Alagútban vagy jel nélkül előfordulhat. A Trippo ilyenkor jelzi a kimaradást, és lezárás előtt ellenőrizheted a km-t."}},{"@type":"Question","name":"Céges autóhoz is jó?","acceptedAnswer":{"@type":"Answer","text":"Igen. Saját, céges és 3,5 tonna alatti kisteherautót is felvehetsz. Céges autónál és kisteherautónál nincs km-térítés: a napló az üzleti arányt igazolja."}},{"@type":"Question","name":"Elfogadja a NAV?","acceptedAnswer":{"@type":"Answer","text":"Az útnyilvántartás tartalmazza a jogszabály által előírt adatokat. A Trippo segédeszköz, nem adótanácsadás: az adatok valódiságáért a felhasználó felel, ezért nézd át az utakat lezárás előtt."}},{"@type":"Question","name":"Hogyan mondhatom le a Prót?","acceptedAnswer":{"@type":"Answer","text":"iPhone Beállítások › a neved › Előfizetések › Trippo Pro. A próbaidő alatti lemondásnál nem terhelünk."}}]}]}</script>
 </head>
 <body class="home">
@@ -37,7 +38,7 @@
       <p class="hero-title">Vezetsz. Elhúzod. Kész a papír.</p>
       <p class="lead">A Trippo magától rögzíti az utaidat. Te csak elhúzod: <b>jobbra üzleti, balra magán</b>. Hónap végén egy koppintással kész a NAV-szabályok szerinti útnyilvántartás és kiküldetési rendelvény.</p>
       <div class="cta">
-        <span class="btn btn-soon">Hamarosan az App Store-ban</span>
+        <a class="btn btn-soon" href="#hirlevel">Szólj, ha kész</a>
         <a class="btn btn-ghost" href="#hogyan">Hogyan működik?</a>
       </div>
       <p class="muted">A rögzítés és a besorolás ingyenes. Pro: 14 nap ingyen, utána 1 990 Ft/hó. iPhone-ra.</p>
@@ -192,6 +193,24 @@
       <li>Több autó</li>
       <li>Km-óra és blokk olvasása fotóból</li>
     </ul>
+  </div>
+</section>
+
+<section class="section" id="hirlevel">
+  <div class="wrap">
+    <div class="signup">
+      <div>
+        <h2 class="title">Szólunk, ha kész</h2>
+        <p class="lead">Induláskor írunk, havonta elküldjük az új NAV-üzemanyagárat, és ritkán az újdonságokat.</p>
+      </div>
+      <form class="signup-form" id="signup" novalidate>
+        <label class="sr-only" for="signup-email">E-mail-cím</label>
+        <input id="signup-email" type="email" name="email" autocomplete="email" inputmode="email" placeholder="E-mail-címed" required>
+        <input class="hp" type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
+        <button class="btn" type="submit">Feliratkozom</button>
+        <p class="signup-note" id="signup-message" aria-live="polite">Megerősítő levelet küldünk. Bármikor leiratkozhatsz. <a href="adatvedelem.html#hirlevel">Adatkezelés</a></p>
+      </form>
+    </div>
   </div>
 </section>
 

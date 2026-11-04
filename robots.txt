@@ -1,5 +1,6 @@
 User-agent: *
 Allow: /
 Disallow: /megerosites
+Disallow: /hirlevel
 
 Sitemap: https://trippo.hu/sitemap.xml

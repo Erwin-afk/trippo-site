@@ -93,6 +93,18 @@ main.doc h2[id] { scroll-margin-top: 80px; }
 .amount small { margin-left: 3px; font-size: 16px; font-weight: 600; color: var(--muted); letter-spacing: 0; }
 .price p.muted { margin: 0; }
 .badge { position: absolute; top: -13px; right: 16px; background: var(--accent); color: var(--on-accent); font-size: 13px; font-weight: 700; padding: 3px 12px; border-radius: 999px; }
+/* Newsletter sign-up */
+.signup { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; align-items: center; background: var(--card); border: 1px solid var(--line); border-radius: 28px; padding: 36px 40px; }
+.signup .lead { margin: 0; }
+.signup-form { display: flex; flex-wrap: wrap; gap: 12px; }
+.signup-form input[type="email"] { flex: 1 1 220px; min-width: 0; font: inherit; padding: 13px 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--bg); color: var(--text); }
+.signup-form input[type="email"]:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.signup-form .btn { border: 0; font: inherit; font-weight: 700; cursor: pointer; }
+.signup-form .btn:disabled { opacity: .6; cursor: default; }
+.signup-note { flex-basis: 100%; margin: 0; color: var(--muted); font-size: 13px; }
+.hp { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+@media (max-width: 760px) { .signup { grid-template-columns: 1fr; gap: 18px; padding: 24px 20px; } }
 .band { display: flex; align-items: center; justify-content: space-between; gap: 24px; flex-wrap: wrap; background: #0a8f6a; color: #fff; border-radius: 28px; padding: 36px; }
 .band > div:first-child { flex: 1 1 380px; }
 .band h2 { font-size: 30px; margin: 0 0 8px; color: #fff; }
