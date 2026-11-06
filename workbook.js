@@ -16,9 +16,12 @@ export const XLSX_MIME = 'application/vnd.openxmlformats-officedocument.spreadsh
 export const payableOf = (s) => (s?.total_huf ?? 0) + (s?.per_diem?.totalHuf ?? 0) + (s?.expenses_huf ?? 0);
 
 /** Company cars and vans: the month proves a business share, nothing is paid per km. */
-export const isShareLog = (s) => !!s?.usage && s.usage !== 'own';
+export const isShareLog = (s) => s?.usage === 'company' || s?.usage === 'van';
 
-const USAGE = { own: 'Saját gépkocsi', company: 'Céges gépkocsi', van: 'Kisteherautó' };
+/** A car that isn't the driver's own: fuel by the norm only, no 15 Ft/km and no kiküldetési rendelvény. */
+const isBorrowed = (s) => s?.usage === 'borrowed';
+
+const USAGE = { own: 'Saját gépkocsi', borrowed: 'Nem saját gépkocsi', company: 'Céges gépkocsi', van: 'Kisteherautó' };
 const pct = (n) => `${comma(n ?? 0)} %`;
 
 /* ---------- Styles ---------- */
@@ -286,13 +289,14 @@ function summarySheet(c) {
   const s = c.snapshot ?? {};
   const o = odometerOf(c);
   const pay = payableOf(s);
+  const borrowed = isBorrowed(s);
   const section = (title) => ({ cells: [[title, 'section'], ['', 'section']], height: 24 });
   const text = (label, value) => ({ cells: [[label, 'label'], [value ?? '–', 'value']] });
   const km = (label, value) => (value === null || value === undefined ? text(label, '–') : { cells: [[label, 'label'], [value, 'valueKm']] });
   const ft = (label, value) => ({ cells: [[label, 'label'], [value ?? 0, 'valueFt']] });
   const rows = [
     { cells: [[`Elszámolás · ${monthLabel(c.month)}`, 'title']], height: 32 },
-    { cells: [[[s.people?.driverName, c.vehicles?.plate].filter(Boolean).join(' · '), 'sub']] },
+    { cells: [[[borrowed && USAGE.borrowed, s.people?.driverName, c.vehicles?.plate].filter(Boolean).join(' · '), 'sub']] },
     { cells: [] },
     { cells: [['Kifizetendő összesen', 'payText'], [pay, 'payFt']], height: 34 },
     { cells: [] },
@@ -300,7 +304,7 @@ function summarySheet(c) {
     text('Fogyasztási norma', s.norm_l_per_100km != null ? `${comma(s.norm_l_per_100km)} l/100 km` : null),
     text('NAV üzemanyagár', s.price_label),
     ft(`Üzemanyagköltség (${s.business_km ?? 0} km)`, s.fuel_cost_huf),
-    ft(`Normaköltség (${s.business_km ?? 0} km × ${s.general_norm_huf_per_km ?? 15} Ft)`, s.amortization_huf),
+    ...(borrowed ? [] : [ft(`Normaköltség (${s.business_km ?? 0} km × ${s.general_norm_huf_per_km ?? 15} Ft)`, s.amortization_huf)]),
     ft('Költségtérítés', s.total_huf),
     ...(s.per_diem ? [ft(`Napidíj (${s.per_diem.days?.length ?? 0} nap × ${s.per_diem.hufPerDay ?? 0} Ft)`, s.per_diem.totalHuf)] : []),
     ...(s.expenses?.length ? [ft(`Számla alapján (${s.expenses.length} tétel)`, s.expenses_huf)] : []),
@@ -315,16 +319,20 @@ function summarySheet(c) {
     o.yearEnd !== null ? km('Km-óra az év utolsó napján', o.yearEnd) : text('Km-óra az év utolsó napján', 'év végén kerül rögzítésre'),
     { cells: [] },
     section('Adatok'),
-    text('Kiküldött (gépkocsivezető)', s.people?.driverName),
-    // Required on the kiküldetési rendelvény; Trippo never stores it, so it's filled in by hand.
-    text('Kiküldött adóazonosító jele', ''),
-    text('Kiküldő (munkáltató)', s.people?.employerName),
+    ...(borrowed
+      ? [text('Gépkocsivezető', s.people?.driverName), text('Munkáltató', s.people?.employerName)]
+      : [
+          text('Kiküldött (gépkocsivezető)', s.people?.driverName),
+          // Required on the kiküldetési rendelvény; Trippo never stores it, so it's filled in by hand.
+          text('Kiküldött adóazonosító jele', ''),
+          text('Kiküldő (munkáltató)', s.people?.employerName),
+        ]),
     text('Rendszám', c.vehicles?.plate),
     text('Gépkocsi', vehicleText(c)),
     text('Lezárva', closedText(c.closed_at)),
     { cells: [['Ellenőrző kód (SHA-256)', 'label'], [c.snapshot_hash ?? '–', 'hash']], height: 42 },
     { cells: [] },
-    { cells: [['A számítás alapja: SZJA tv. és 60/1992. (IV. 1.) Korm. rendelet, a NAV által közzétett havi üzemanyagár.', 'note']], height: 30 },
+    { cells: [[borrowed ? 'Nem saját gépkocsi, útnyilvántartás alapján: a norma szerinti üzemanyagköltség számolható el, az általános normaköltség (15 Ft/km) és a kiküldetési rendelvény nem (NAV 8. füzet 3.2.).' : 'A számítás alapja: SZJA tv. és 60/1992. (IV. 1.) Korm. rendelet, a NAV által közzétett havi üzemanyagár.', 'note']], height: borrowed ? 44 : 30 },
   ];
   return { name: 'Összesítő', widths: [46, 42], rows, merges: [`A${rows.length}:B${rows.length}`], portrait: true };
 }

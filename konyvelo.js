@@ -77,13 +77,13 @@ function monthCard(c, i) {
   const o = s.odometer || {};
   const money = [
     [`Üzemanyag (${esc(km(s.business_km))} × ${esc(comma(s.norm_l_per_100km))} l/100 km × ${esc(s.price_label)})`, s.fuel_cost_huf],
-    [`Normaköltség (${esc(km(s.business_km))} × ${esc(s.general_norm_huf_per_km)} Ft)`, s.amortization_huf],
+    ...(s.usage === 'borrowed' ? [] : [[`Normaköltség (${esc(km(s.business_km))} × ${esc(s.general_norm_huf_per_km)} Ft)`, s.amortization_huf]]),
     ...(s.per_diem ? [[`Napidíj (${esc(s.per_diem.days.length)} nap × ${esc(huf(s.per_diem.hufPerDay))})`, s.per_diem.totalHuf]] : []),
     ...((s.expenses || []).length ? [[`Számla alapján (${esc(s.expenses.length)} tétel)`, s.expenses_huf]] : []),
   ];
   return `<div class="card month" data-month="${i}">
     <button class="month-head" aria-expanded="false">
-      <span><b>${esc(monthName(c.month))}</b><span class="sub">${esc(c.vehicles?.plate)} · ${esc(people.driverName)} · ${km(s.business_km)} üzleti</span></span>
+      <span><b>${esc(monthName(c.month))}</b><span class="sub">${esc(c.vehicles?.plate)}${s.usage === 'borrowed' ? ' (nem saját)' : ''} · ${esc(people.driverName)} · ${km(s.business_km)} üzleti</span></span>
       <span class="amount">${isShareLog(s) ? esc(comma(s.business_share_pct)) + ' % üzleti' : huf(payableOf(s))}</span>
     </button>
     <div class="details">
