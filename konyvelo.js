@@ -7,7 +7,7 @@
  * Everything from the server goes through esc(): this page holds a login, and trip purposes,
  * partners and names are typed by clients.
  */
-import { XLSX_MIME, isShareLog, monthWorkbook, payableOf, yearWorkbook } from './workbook.js';
+import { XLSX_MIME, clientsWorkbook, isShareLog, monthWorkbook, payableOf, yearWorkbook } from './workbook.js';
 
 const BASE = 'https://rudnmzhfgnynlmjdrwoy.supabase.co';
 const ANON = 'sb_publishable_Tyxe0cP-kh_mCvH5oCEcsw_qDRYTL8X';
@@ -220,8 +220,8 @@ function loginView() {
       <h2>Amit nem kell többé megkérdezned</h2>
       <div class="features">
         <div><h3>Ki zárta le a hónapot?</h3><p>Egy pillantásra látod, kitől van meg a múlt hónap, és kire kell még várni.</p></div>
-        <div><h3>Utólag nem módosítható</h3><p>A lezárt hónap befagy; az ellenőrző kód igazolja, hogy az adat azóta nem változott.</p></div>
-        <div><h3>Kész az Excelben</h3><p>Havi vagy éves Excel-fájl: kifizetendő összeg, útlista, költségek, NAV-ár és km-óra.</p></div>
+        <div><h3>Minden változás látszik</h3><p>A lezárt hónap befagy. Ha az ügyfél javításra újranyitja, itt látod, és az ellenőrző kód meg a változásnapló megmutatja, mi változott.</p></div>
+        <div><h3>Kész az Excelben</h3><p>Havi vagy éves Excel ügyfelenként, és egy fájlban az összes ügyfeled hónapja: kifizetendő összeg, útlista, költségek, NAV-ár és km-óra.</p></div>
         <div><h3>Csak amit megosztanak</h3><p>Kizárólag a lezárt hónapokat látod, és az ügyfeled bármikor visszavonhatja.</p></div>
       </div>
     </section>
@@ -252,7 +252,7 @@ function dashboardView(clients, demo) {
   let filter = 'all';
 
   show(`${demo ? '<div class="notice"><p>Ez egy minta, kitalált adatokkal.</p><a class="button" href="#">Belépés</a></div>' : ''}
-    <div class="head"><h1>Ügyfelek</h1></div>
+    <div class="head"><h1>Ügyfelek</h1>${clients.length ? `<div class="actions"><button class="primary" id="month-xlsx">${esc(monthShort(wanted))}: minden ügyfél Excelben</button></div>` : ''}</div>
     ${
       clients.length
         ? `<div class="stats">
@@ -305,6 +305,30 @@ function dashboardView(clients, demo) {
     body.innerHTML = shown.map(row).join('') || '<tr><td colspan="4" class="muted">Nincs találat.</td></tr>';
     body.querySelectorAll('tr[data-id]').forEach((tr) => tr.addEventListener('click', () => (location.hash = base.slice(1) + tr.dataset.id)));
   };
+  on('#month-xlsx', 'click', async (ev) => {
+    const button = ev.currentTarget;
+    const label = button.textContent;
+    button.disabled = true;
+    button.textContent = 'Készül…';
+    try {
+      const same = (c) => c.month.slice(0, 7) === wanted.slice(0, 7);
+      // Each client's own months, a few at a time; the dashboard rows only carry totals.
+      const full = [];
+      for (let i = 0; i < clients.length; i += 5) {
+        const batch = clients.slice(i, i + 5);
+        full.push(...(await Promise.all(batch.map((c) => (demo ? { closes: c.closes, reopened: [] } : call({ action: 'client', id: c.id }))))));
+      }
+      const list = clients
+        .map((c, i) => ({ name: c.name || full[i].name || full[i].owner || 'Névtelen ügyfél', plates: c.plates, closes: (full[i].closes || []).filter(same), reopened: isReopened(c, wanted) }))
+        .sort((a, b) => a.name.localeCompare(b.name, 'hu'));
+      download(`trippo-ugyfelek-${wanted.slice(0, 7)}`, clientsWorkbook(list, wanted));
+    } catch {
+      window.alert('Nem sikerült elkészíteni a fájlt. Próbáld újra.');
+    } finally {
+      button.disabled = false;
+      button.textContent = label;
+    }
+  });
   on('#search', 'input', paint);
   document.querySelectorAll('[data-filter]').forEach((b) =>
     b.addEventListener('click', () => {

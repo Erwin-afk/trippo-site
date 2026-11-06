@@ -458,3 +458,53 @@ export function yearWorkbook(closes, year) {
   const costs = costsSheet(list, [year, who].filter(Boolean).join(' · '));
   return buildXlsx([summary, ...(lines.length ? [trips] : []), ...(costs ? [costs] : [])]);
 }
+
+/**
+ * An accountant's clients for one month: who closed it and what to pay, then each client's trip log.
+ * `clients` is [{ name, plates, closes (that month's), reopened }]; a client without a close is listed as missing.
+ */
+export function clientsWorkbook(clients, month) {
+  const anyShare = clients.some((c) => c.closes.some((x) => isShareLog(x.snapshot)));
+  const money = [(s) => s.business_km, (s) => s.total_huf, (s) => s.per_diem?.totalHuf, (s) => s.expenses_huf, payableOf];
+  const totals = money.map(() => 0);
+  const labels = ['Ügyfél', 'Rendszám', 'Gépkocsi', 'Üzleti km', 'Költségtérítés (Ft)', 'Napidíj (Ft)', 'Számlák (Ft)', 'Kifizetendő (Ft)', ...(anyShare ? ['Üzleti arány'] : []), 'Lezárva', 'Ellenőrző kód (SHA-256)'];
+  const blank = (style) => [['', style]];
+  const body = clients.flatMap((client) => {
+    if (!client.closes.length) {
+      const state = client.reopened ? 'javítás alatt' : 'hiányzik';
+      return [{ cells: [[client.name, 'cell'], [(client.plates ?? []).join(', '), 'cell'], ['', 'cell'], ...money.map(() => ['', 'cell']), ...(anyShare ? blank('cell') : []), [state, 'cell'], ['', 'cell']] }];
+    }
+    return client.closes.map((c) => {
+      const s = c.snapshot ?? {};
+      const values = money.map((pick, i) => {
+        const v = pick(s) ?? 0;
+        totals[i] += v;
+        return [v, 'cellInt'];
+      });
+      return { cells: [[client.name, 'cell'], [c.vehicles?.plate ?? '', 'cell'], [USAGE[s.usage ?? 'own'] ?? '', 'cell'], ...values, ...(anyShare ? [[isShareLog(s) ? pct(s.business_share_pct) : '', 'cell']] : []), [closedText(c.closed_at), 'cell'], [c.snapshot_hash ?? '', 'hash']] };
+    });
+  });
+  const closed = clients.filter((c) => c.closes.length).length;
+  const rows = [
+    { cells: [[`Ügyfelek · ${monthLabel(month)}`, 'title']], height: 32 },
+    { cells: [[`${clients.length} ügyfél, ebből ${closed} zárta le a hónapot`, 'sub']] },
+    { cells: [] },
+    headRow(labels, [3, 4, 5, 6, 7]),
+    ...body,
+    { fill: 'totalText', height: 24, cells: [['Összesen', 'totalText'], ['', 'totalText'], ['', 'totalText'], ...totals.map((v) => [v, 'totalInt']), ...(anyShare ? blank('totalText') : []), ['', 'totalText'], ['', 'totalText']] },
+    { cells: [] },
+    { cells: [['Hiányzik: az ügyfél még nem zárta le a hónapot. Javítás alatt: újranyitotta, a korábbi számai nem érvényesek, amíg újra le nem zárja.', 'note']] },
+  ];
+  const overview = { name: `Ügyfelek ${monthLabel(month)}`, widths: [28, 12, 16, 11, 14, 11, 11, 14, ...(anyShare ? [10] : []), 16, 40], rows, freeze: 4, repeat: 4, merges: [`A${rows.length}:H${rows.length}`] };
+
+  // One log per client and car; sheet names must stay unique after Excel's 31-character cut.
+  const used = new Set([sheetName(overview.name)]);
+  const unique = (name) => {
+    let n = sheetName(name);
+    for (let i = 2; used.has(n); i++) n = sheetName(`${name.slice(0, 26)} (${i})`);
+    used.add(n);
+    return n;
+  };
+  const logs = clients.flatMap((client) => client.closes.map((c) => ({ ...logSheet(c), name: unique([client.name, c.vehicles?.plate].filter(Boolean).join(' ')) })));
+  return buildXlsx([overview, ...logs]);
+}
