@@ -378,7 +378,7 @@ function costsSheet(closes, title) {
     }
     for (const day of s.per_diem?.days ?? []) {
       total += s.per_diem.hufPerDay ?? 0;
-      rows.push({ cells: [dateCell(day, c.month), ['Napidíj', 'cell'], ['6 órát meghaladó kiküldetés', 'cell'], ['', 'cell'], [s.per_diem.hufPerDay ?? 0, 'cellInt']] });
+      rows.push({ cells: [dateCell(day, c.month), ['Napidíj', 'cell'], ['legalább 6 órás kiküldetés', 'cell'], ['', 'cell'], [s.per_diem.hufPerDay ?? 0, 'cellInt']] });
     }
   }
   if (rows.length === 4) return null;
