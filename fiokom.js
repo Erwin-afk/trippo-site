@@ -118,6 +118,7 @@ const demo = (() => {
     trip('d6', month, today - 2, 13, 40, 85, 'Budapest, Váci út 30.', 'Győr, Baross Gábor út 12.', 121, 'business', 'Szállítói egyeztetés', '', false),
     trip('d7', month, today - 2, 17, 0, 80, 'Győr, Baross Gábor út 12.', 'Budaörs, Szabadság út 1.', 113, 'unreviewed', null, null),
     trip('d8', month, today - 1, 10, 0, 20, 'Budaörs, Szabadság út 1.', 'Budaörs, Templom tér 3.', 4, 'unreviewed', null, null),
+    trip('d9', month, today - 1, 18, 30, 15, null, null, 6, 'personal', null, null),
   ];
   const snapshot = {
     people: { driverName: 'Minta Márton', employerName: 'Minta Kft.' }, odometer: { start: 84000, end: 86130, yearStart: 72350 },
@@ -156,7 +157,11 @@ const state = { api: real, demo: false, vehicles: [], vehicle: null, month: ym(n
 
 const activeClose = (month) => state.closes.find((c) => c.month.slice(0, 7) === month && !c.reopened_at);
 const reopened = (month) => !activeClose(month) && state.closes.some((c) => c.month.slice(0, 7) === month && c.reopened_at);
-const missing = (t) => t.category === 'business' && !(t.purpose?.trim() && t.partner_name?.trim());
+const noPlace = (t) => !t.start_address && !t.end_address;
+/** A private trip's addresses never reach the server, so only the phone can turn it into anything else. */
+const phoneOnly = (t) => t.category === 'personal' && noPlace(t);
+const noAddress = (t) => t.category === 'business' && noPlace(t);
+const missing = (t) => (t.category === 'business' && !(t.purpose?.trim() && t.partner_name?.trim())) || noAddress(t);
 
 async function load() {
   state.error = null;
@@ -235,10 +240,12 @@ function closedBlock(c) {
 
 function openBlock() {
   const waiting = state.trips.filter((t) => t.category === 'unreviewed').length;
-  const gaps = state.trips.filter(missing).length;
+  const gaps = state.trips.filter((t) => t.category === 'business' && !(t.purpose?.trim() && t.partner_name?.trim())).length;
+  const blank = state.trips.filter(noAddress).length;
   const todo = [
     waiting ? `${waiting} út vár döntésre` : '',
     gaps ? `${gaps} üzleti útnál hiányzik a cél vagy a partner` : '',
+    blank ? `${blank} üzleti útnál hiányzik a cím (az appban adhatod meg)` : '',
   ].filter(Boolean);
   const ready = closable(state.month);
   const head = reopened(state.month) ? 'Javításra újranyitva' : ready ? 'Lezárható az appban' : 'Folyamatban';
@@ -249,12 +256,13 @@ function openBlock() {
 
 function tripCard(t) {
   const priv = t.category === 'personal';
-  const noPlace = !t.start_address && !t.end_address;
-  const route = noPlace ? (priv ? 'Magánút' : 'A címeket a telefonod tölti fel') : `${esc(t.start_address || '–')} → ${esc(t.end_address || '–')}`;
+  const blank = noPlace(t);
+  const route = blank ? (priv ? 'Magánút' : 'Nincs cím: az appban, az út oldalán adhatod meg') : `${esc(t.start_address || '–')} → ${esc(t.end_address || '–')}`;
+  const lockedToPhone = phoneOnly(t);
   const segment = t.locked
     ? `<span class="pill">${esc(LABEL[t.category])}</span>`
     : `<div class="seg" role="group" aria-label="Kategória">${CATEGORIES.map(
-        ([value, label]) => `<button data-cat="${value}" data-id="${esc(t.id)}" aria-pressed="${t.category === value}">${label}</button>`,
+        ([value, label]) => `<button data-cat="${value}" data-id="${esc(t.id)}" aria-pressed="${t.category === value}"${lockedToPhone && value !== 'personal' ? ' disabled' : ''}>${label}</button>`,
       ).join('')}</div>`;
   const fields =
     t.category === 'business'
@@ -267,10 +275,11 @@ function tripCard(t) {
       : '';
   return `<article class="trip${t.category === 'unreviewed' ? ' waiting' : ''}${missing(t) && !t.locked ? ' missing' : ''}" id="t-${esc(t.id)}">
     <div class="trip-top">
-      <div class="trip-main"><span class="when">${esc(time(t.started_at))}–${esc(time(t.ended_at))}</span><span class="route${noPlace ? ' muted' : ''}">${route}</span></div>
+      <div class="trip-main"><span class="when">${esc(time(t.started_at))}–${esc(time(t.ended_at))}</span><span class="route${blank ? ' muted' : ''}">${route}</span></div>
       <b class="trip-km">${km(kmOf(t.distance_m))}</b>
     </div>
     <div class="trip-bottom">${segment}${t.locked ? '<span class="muted small">Lezárt hónap</span>' : '<span class="saved muted small" aria-live="polite"></span>'}</div>
+    ${lockedToPhone && !t.locked ? '<p class="muted small phone-only">A magánút címe csak a telefonodon van, ezért üzletivé az appban teheted.</p>' : ''}
     ${fields}
   </article>`;
 }
@@ -382,6 +391,8 @@ function bindTrips() {
       const trip = state.trips.find((t) => t.id === b.dataset.id);
       const category = b.dataset.cat;
       if (!trip || trip.category === category) return;
+      // Here it would become a business trip without addresses, and older apps would wipe their copy too.
+      if (phoneOnly(trip)) return;
       // Private: only km and times may stay on the server.
       const patch =
         category === 'personal'
