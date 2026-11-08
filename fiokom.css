@@ -1,6 +1,8 @@
 /* Útjaim: on top of style.css and konyvelo.css (buttons, inputs, cards, stats, login). */
+[hidden] { display: none !important; }
 .small { font-size: 13px; }
 #app.loading { opacity: .5; pointer-events: none; transition: opacity .15s ease; }
+button.icon { padding: 6px 10px; font-size: 16px; line-height: 1; border-radius: 10px; }
 
 .head .muted { display: block; margin-top: 4px; }
 .pickers { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
@@ -19,30 +21,127 @@ select { font: inherit; font-size: 15px; padding: 10px 12px; border: 1px solid v
 .closed .muted.small { margin: 0; }
 #status { margin-bottom: 16px; }
 
+/* The open month: what to do, and the money so far. */
+.side { display: grid; gap: 0; }
+.estimate { margin: 0 0 16px; padding: 18px 20px; }
+.estimate-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.estimate-big { font-size: 30px; font-weight: 800; line-height: 1.2; margin: 6px 0 8px; font-variant-numeric: tabular-nums; }
+.estimate .calc td { border-bottom: 1px solid var(--line); }
+.estimate .muted.small { margin: 10px 0 12px; }
+@media (min-width: 960px) {
+  .side { grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; }
+  .side #status { margin: 0; }
+  .side .estimate { margin: 0 0 16px; }
+}
+
+.tools { justify-content: space-between; align-items: center; }
+
+/* Trips: cards on phones, one table on wide screens. Same markup. */
 .day h3 { font-size: 14px; color: var(--muted); font-weight: 600; margin: 20px 0 8px; }
 .day h3::first-letter { text-transform: uppercase; }
-.trip { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; margin-bottom: 8px; }
+.trip-head { display: flex; align-items: center; gap: 10px; padding: 4px 2px; font-size: 14px; color: var(--muted); }
+.trip-head .c-main { flex: 1; }
+.only-wide { display: none; }
+.trip {
+  display: grid; grid-template-columns: auto minmax(0, 1fr) auto; column-gap: 10px;
+  grid-template-areas: "pick main km" "cat cat edit" "fields fields fields";
+  background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; margin-bottom: 8px;
+}
 .trip.waiting { border-color: var(--accent); }
 .trip.missing { border-color: #d98a00; }
-.trip-top { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; }
-.trip-main { min-width: 0; }
+.trip.picked { box-shadow: inset 0 0 0 2px var(--accent); }
+.c-pick { grid-area: pick; padding-top: 2px; }
+.c-main { grid-area: main; min-width: 0; }
+.c-km { grid-area: km; text-align: right; }
+.c-cat { grid-area: cat; margin-top: 10px; }
+.c-edit { grid-area: edit; margin-top: 10px; display: flex; align-items: center; justify-content: flex-end; }
+.c-fields { grid-area: fields; min-width: 0; }
+.c-fields:empty { display: none; }
+input.pick { width: 20px; height: 20px; margin: 0; padding: 0; accent-color: var(--accent); cursor: pointer; }
+.pick-space { display: inline-block; width: 20px; }
 .when { display: block; font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
 .route { display: block; font-weight: 600; overflow-wrap: anywhere; }
 .route.muted { font-weight: 400; }
 .trip-km { white-space: nowrap; font-variant-numeric: tabular-nums; }
-.trip-bottom { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 10px; }
+.c-km .small { display: block; }
+.saved { display: block; }
+.saved:empty { display: none; }
 .saved.error { color: #d93d42; }
 .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
 .seg button { border: 0; border-radius: 0; padding: 8px 14px; font-size: 14px; background: none; }
 .seg button + button { border-left: 1px solid var(--line); }
 .seg button[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); }
 .seg button:hover:not([aria-pressed="true"]):not(:disabled) { background: var(--bg); }
+.seg button:disabled:not([aria-pressed="true"]) { opacity: .35; cursor: not-allowed; }
+.phone-only { margin: 6px 0 0; }
 .pill { background: var(--bg); border: 1px solid var(--line); color: var(--text); }
 .pill.ok { border-color: transparent; }
 .fields { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
 .fields label { margin: 0; font-size: 13px; color: var(--muted); font-weight: 600; }
 .fields input { margin-top: 4px; padding: 10px 12px; font-size: 15px; color: var(--text); font-weight: 400; }
 .purpose { margin: 8px 0 0; font-size: 14px; }
+.suggest { margin-top: 8px; font-size: 13px; padding: 6px 10px; border-style: dashed; color: var(--accent); max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+
+@media (min-width: 960px) {
+  .only-wide { display: block; }
+  .only-phone { display: none; }
+  .trips { background: var(--card); border: 1px solid var(--line); border-radius: 16px; overflow: hidden; }
+  .trip-head, .trip {
+    display: grid; grid-template-columns: 22px minmax(0, 1.25fr) 72px 236px minmax(0, 1.6fr) 44px; column-gap: 14px;
+    grid-template-areas: "pick main km cat fields edit"; align-items: center;
+  }
+  .trip-head { padding: 10px 16px; font-size: 13px; font-weight: 600; border-bottom: 1px solid var(--line); }
+  .trip-head .c-km { text-align: right; }
+  .day h3 { margin: 0; padding: 8px 16px; background: var(--bg); border-bottom: 1px solid var(--line); font-size: 13px; }
+  .trip { border: 0; border-bottom: 1px solid var(--line); border-radius: 0; margin: 0; padding: 10px 16px; }
+  .day:last-child .trip:last-child { border-bottom: 0; }
+  .trip.waiting { box-shadow: inset 3px 0 0 var(--accent); border-color: var(--line); }
+  .trip.missing { box-shadow: inset 3px 0 0 #d98a00; border-color: var(--line); }
+  .trip.picked { box-shadow: none; background: color-mix(in srgb, var(--accent) 9%, var(--card)); }
+  .c-pick { padding: 0; }
+  .c-cat, .c-edit { margin: 0; }
+  .c-fields:empty { display: block; }
+  .seg button { padding: 7px 12px; font-size: 13px; }
+  .fields { margin: 0; gap: 8px; }
+  .fields label > span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  .fields input { margin: 0; padding: 8px 10px; font-size: 14px; }
+  .purpose { margin: 0; }
+  .suggest { margin-top: 6px; }
+}
+
+/* Many at once: the bar sits at the bottom while trips are picked. */
+.bulk { position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; padding: 10px 16px calc(10px + env(safe-area-inset-bottom)); background: color-mix(in srgb, var(--card) 92%, transparent); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border-top: 1px solid var(--line); box-shadow: 0 -6px 24px rgba(0, 0, 0, .08); }
+.bulk-in { max-width: 1080px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.bulk-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+.bulk-actions button { padding: 9px 12px; font-size: 14px; }
+body.has-bulk main { padding-bottom: 120px; }
+.toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: 24px; z-index: 40; max-width: min(560px, calc(100% - 32px)); background: var(--text); color: var(--bg); padding: 12px 16px; border-radius: 14px; font-size: 14px; box-shadow: 0 8px 30px rgba(0, 0, 0, .2); }
+.toast.error { background: #d93d42; color: #fff; }
+body.has-bulk .toast { bottom: 96px; }
+
+/* Edit and add. */
+.sheet-dialog { width: min(520px, calc(100% - 24px)); max-height: calc(100dvh - 24px); padding: 0; border: 1px solid var(--line); border-radius: 20px; background: var(--card); color: var(--text); }
+.sheet-dialog::backdrop { background: rgba(10, 12, 16, .45); }
+.dialog-form { display: flex; flex-direction: column; max-height: calc(100dvh - 26px); }
+.dialog-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 16px 20px 8px; }
+.dialog-head h2 { margin: 0; font-size: 20px; }
+.dialog-body { padding: 4px 20px 8px; overflow-y: auto; display: grid; gap: 12px; }
+.dialog-body > p { margin: 0; }
+.dialog-form > .error { margin: 0 20px 8px; }
+.dialog-actions { display: flex; justify-content: flex-end; gap: 8px; padding: 12px 20px 18px; border-top: 1px solid var(--line); }
+.dl-field { margin: 0; }
+.dl-field > span { display: block; font-size: 13px; color: var(--muted); font-weight: 600; margin-bottom: 4px; }
+.dl-field input { padding: 11px 12px; font-size: 16px; }
+.dl-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.dl-row.three { grid-template-columns: 1.4fr 1fr 1fr; }
+[data-place] { display: grid; gap: 12px; }
+.seg-wide { display: flex; width: 100%; }
+.seg-radio { flex: 1; margin: 0; position: relative; }
+.seg-radio + .seg-radio { border-left: 1px solid var(--line); }
+.seg-radio input { position: absolute; opacity: 0; inset: 0; width: 100%; height: 100%; margin: 0; cursor: pointer; }
+.seg-radio span { display: block; text-align: center; padding: 10px 6px; font-size: 15px; font-weight: 600; }
+.seg-radio input:checked + span { background: var(--accent); color: var(--on-accent); }
+.seg-radio input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: -4px; }
 
 .year { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; padding: 14px 20px; margin-top: 20px; }
 
@@ -53,13 +152,20 @@ select { font: inherit; font-size: 15px; padding: 10px 12px; border: 1px solid v
   .month-nav { justify-content: space-between; }
   .stats.four { grid-template-columns: 1fr 1fr; }
   .fields { grid-template-columns: 1fr; }
-  .seg { width: 100%; }
+  .c-cat .seg { width: 100%; }
   .seg button { flex: 1; padding: 10px 6px; }
   .tools .filter { flex-wrap: wrap; }
+  .tools #add-trip { width: 100%; }
+  .bulk-in { justify-content: center; }
+  .bulk-actions { width: 100%; }
+  .bulk-actions button { flex: 1; padding: 10px 6px; }
+  .dl-row, .dl-row.three { grid-template-columns: 1fr 1fr; }
+  .dl-row.three > :first-child { grid-column: 1 / -1; }
+  .sheet-dialog { margin: auto auto 0; width: 100%; max-width: 100%; border-radius: 20px 20px 0 0; }
 }
 
 @media print {
-  .pickers button, .seg, .saved, .closed .actions, .closed .muted.small, #status, .year button { display: none !important; }
+  .pickers button, .seg, .saved, .closed .actions, .closed .muted.small, #status, .year button, .c-pick, .c-edit, .trip-head, .tools, .bulk, .toast, .suggest, .estimate .actions { display: none !important; }
   .trip, .closed, .stat { break-inside: avoid; border-color: #ccc; }
   .fields input { border: 0; padding: 0; }
 }

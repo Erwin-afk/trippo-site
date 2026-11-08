@@ -220,6 +220,9 @@ function vehicleText(c) {
   return model && engine ? `${model} (${engine})` : model || engine;
 }
 
+/** An open month from the web page: the same layout, marked so nobody books it as final. */
+const draftMark = (c) => (c.draft ? ' · PISZKOZAT' : '');
+
 function closedText(iso) {
   if (!iso) return '';
   try {
@@ -258,7 +261,7 @@ function shareSheet(c) {
   const text = (label, value) => ({ cells: [[label, 'label'], [value ?? '–', 'value']] });
   const km = (label, value) => (value === null || value === undefined ? text(label, '–') : { cells: [[label, 'label'], [value, 'valueKm']] });
   const rows = [
-    { cells: [[`Útnyilvántartás · ${monthLabel(c.month)}`, 'title']], height: 32 },
+    { cells: [[`Útnyilvántartás · ${monthLabel(c.month)}${draftMark(c)}`, 'title']], height: 32 },
     { cells: [[[USAGE[s.usage], s.people?.driverName, c.vehicles?.plate].filter(Boolean).join(' · '), 'sub']] },
     { cells: [] },
     { cells: [['Üzleti arány', 'payText'], [pct(s.business_share_pct), 'payText']], height: 34 },
@@ -276,7 +279,7 @@ function shareSheet(c) {
     text('Vállalkozás / munkáltató', s.people?.employerName),
     text('Rendszám', c.vehicles?.plate),
     text('Gépkocsi', vehicleText(c)),
-    text('Lezárva', closedText(c.closed_at)),
+    text('Lezárva', c.draft ? 'Nincs lezárva: piszkozat, nem hivatalos' : closedText(c.closed_at)),
     { cells: [['Ellenőrző kód (SHA-256)', 'label'], [c.snapshot_hash ?? '–', 'hash']], height: 42 },
     { cells: [] },
     { cells: [['Az arány az üzleti km és az összes megtett km hányadosa; a munkába járás nem üzleti út.', 'note']], height: 30 },
@@ -295,7 +298,7 @@ function summarySheet(c) {
   const km = (label, value) => (value === null || value === undefined ? text(label, '–') : { cells: [[label, 'label'], [value, 'valueKm']] });
   const ft = (label, value) => ({ cells: [[label, 'label'], [value ?? 0, 'valueFt']] });
   const rows = [
-    { cells: [[`Elszámolás · ${monthLabel(c.month)}`, 'title']], height: 32 },
+    { cells: [[`Elszámolás · ${monthLabel(c.month)}${draftMark(c)}`, 'title']], height: 32 },
     { cells: [[[borrowed && USAGE.borrowed, s.people?.driverName, c.vehicles?.plate].filter(Boolean).join(' · '), 'sub']] },
     { cells: [] },
     { cells: [['Kifizetendő összesen', 'payText'], [pay, 'payFt']], height: 34 },
@@ -329,7 +332,7 @@ function summarySheet(c) {
         ]),
     text('Rendszám', c.vehicles?.plate),
     text('Gépkocsi', vehicleText(c)),
-    text('Lezárva', closedText(c.closed_at)),
+    text('Lezárva', c.draft ? 'Nincs lezárva: piszkozat, nem hivatalos' : closedText(c.closed_at)),
     { cells: [['Ellenőrző kód (SHA-256)', 'label'], [c.snapshot_hash ?? '–', 'hash']], height: 42 },
     { cells: [] },
     { cells: [[borrowed ? 'Nem saját gépkocsi, útnyilvántartás alapján: a norma szerinti üzemanyagköltség számolható el, az általános normaköltség (15 Ft/km) és a kiküldetési rendelvény nem (NAV 8. füzet 3.2.).' : 'A számítás alapja: SZJA tv. és 60/1992. (IV. 1.) Korm. rendelet, a NAV által közzétett havi üzemanyagár.', 'note']], height: borrowed ? 44 : 30 },
@@ -345,7 +348,7 @@ function logSheet(c) {
   const facts = [o.start !== null && `Km-óra: ${o.start.toLocaleString('hu-HU')} → ${o.end === null ? '–' : o.end.toLocaleString('hu-HU')} km`, !share && s.norm_l_per_100km != null && `${comma(s.norm_l_per_100km)} l/100 km`, !share && s.price_label, share && `Üzleti arány: ${pct(s.business_share_pct)}`].filter(Boolean).join(' · ');
   const cols = share ? 8 : 11;
   const rows = [
-    { cells: [['Útnyilvántartás', 'title']], height: 32 },
+    { cells: [[`Útnyilvántartás${draftMark(c)}`, 'title']], height: 32 },
     { cells: [[whoLine(c), 'sub']] },
     { cells: [[facts, 'sub']] },
     headRow([...LOG_HEAD, ...LOG_MONEY].slice(0, cols), [7, 8, 9, 10]),
