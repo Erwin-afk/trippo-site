@@ -11,6 +11,14 @@
   Cache-Control: no-store
   Referrer-Policy: no-referrer
 
+/fiokom.html
+  Cache-Control: no-store
+  Referrer-Policy: no-referrer
+
+/fiokom
+  Cache-Control: no-store
+  Referrer-Policy: no-referrer
+
 /megerosites.html
   Cache-Control: no-store
   Referrer-Policy: no-referrer
