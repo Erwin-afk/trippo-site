@@ -43,6 +43,11 @@ const UNDO_COLUMNS = ['category', 'start_lat', 'start_lng', 'end_lat', 'end_lng'
 /** Fuel → the NAV price list it uses (as in the close-month function). */
 const FAMILY = { petrol: 'petrol', hybrid_petrol: 'petrol', plugin_petrol: 'petrol', electric: 'petrol', diesel: 'diesel', hybrid_diesel: 'diesel', plugin_diesel: 'diesel', lpg: 'lpg' };
 const MAX_KM = 3000;
+/** Less than this shows as 0 km in the log. */
+const MIN_KM = 0.5;
+const KM_RANGE = `A km 0,5 és ${MAX_KM} között legyen, pl. 12,5.`;
+/** An arrival "before" the departure is the next morning, for a drive of up to this long (the app warns above it too). */
+const MAX_TRIP_MS = 14 * 3_600_000;
 
 /* ---------- Months ---------- */
 
@@ -175,8 +180,11 @@ const real = {
 
 const demo = (() => {
   const now = new Date();
-  const month = ym(now);
+  // Three days of an open month, all of them past: early in a month, those are last month's.
+  const early = now.getDate() <= 3;
+  const month = early ? shift(ym(now), -1) : ym(now);
   const prev = shift(month, -1);
+  const [day1, day2, day3] = early ? [26, 27, 28] : [now.getDate() - 3, now.getDate() - 2, now.getDate() - 1];
   const at = (m, day, h, min) => new Date(`${m}-${String(day).padStart(2, '0')}T${String(h).padStart(2, '0')}:${String(min).padStart(2, '0')}:00`).toISOString();
   const trip = (id, m, day, h, min, dur, from, to, kmv, category, purpose, partner, locked = false) => ({
     id, client_id: id, vehicle_id: 'demo-car', started_at: at(m, day, h, min), ended_at: new Date(new Date(at(m, day, h, min)).getTime() + dur * 60000).toISOString(),
@@ -184,51 +192,59 @@ const demo = (() => {
     start_lat: category === 'personal' ? null : 47.5, end_lat: category === 'personal' ? null : 47.5,
     distance_m: kmv * 1000, distance_source: null, gps_distance_m: null, category, purpose, partner_name: partner, locked, details: null,
   });
-  const today = Math.max(3, Math.min(now.getDate(), 28));
   const trips = [
     trip('d1', prev, 6, 7, 40, 35, 'Budaörs, Szabadság út 1.', 'Budapest, Váci út 30.', 18, 'commute', null, null, true),
     trip('d2', prev, 6, 13, 0, 70, 'Budapest, Váci út 30.', 'Kecskemét, Kossuth tér 1.', 86, 'business', 'Ügyféltárgyalás', 'Alföld Kft.', true),
     trip('d3', prev, 6, 16, 30, 75, 'Kecskemét, Kossuth tér 1.', 'Budaörs, Szabadság út 1.', 92, 'business', 'Visszaút ügyféltől', 'Alföld Kft.', true),
     trip('d4', prev, 9, 10, 0, 25, null, null, 3, 'personal', null, null, true),
-    trip('d5', month, today - 2, 7, 45, 35, 'Budaörs, Szabadság út 1.', 'Budapest, Váci út 30.', 18, 'commute', null, null),
-    trip('d6', month, today - 2, 13, 40, 85, 'Budapest, Váci út 30.', 'Győr, Baross Gábor út 12.', 121, 'business', 'Szállítói egyeztetés', '', false),
-    trip('d7', month, today - 2, 17, 0, 80, 'Győr, Baross Gábor út 12.', 'Budaörs, Szabadság út 1.', 113, 'unreviewed', null, null),
-    trip('d8', month, today - 1, 10, 0, 20, 'Budaörs, Szabadság út 1.', 'Budaörs, Templom tér 3.', 4, 'unreviewed', null, null),
-    trip('d9', month, today - 1, 18, 30, 15, null, null, 6, 'personal', null, null),
-    trip('d10', month, today, 9, 10, 70, 'Budaörs, Szabadság út 1.', 'Kecskemét, Kossuth tér 1.', 88, 'business', null, null),
+    trip('d5', month, day1, 7, 45, 35, 'Budaörs, Szabadság út 1.', 'Budapest, Váci út 30.', 18, 'commute', null, null),
+    trip('d6', month, day1, 13, 40, 85, 'Budapest, Váci út 30.', 'Győr, Baross Gábor út 12.', 121, 'business', 'Szállítói egyeztetés', '', false),
+    trip('d7', month, day1, 17, 0, 80, 'Győr, Baross Gábor út 12.', 'Budaörs, Szabadság út 1.', 113, 'unreviewed', null, null),
+    trip('d8', month, day2, 10, 0, 20, 'Budaörs, Szabadság út 1.', 'Budaörs, Templom tér 3.', 4, 'unreviewed', null, null),
+    trip('d9', month, day2, 18, 30, 15, null, null, 6, 'personal', null, null),
+    trip('d10', month, day3, 9, 10, 70, 'Budaörs, Szabadság út 1.', 'Kecskemét, Kossuth tér 1.', 88, 'business', null, null),
   ];
-  const snapshot = {
-    people: { driverName: 'Minta Márton', employerName: 'Minta Kft.' }, odometer: { start: 84000, end: 86130, yearStart: 72350 },
-    fuel: 'petrol', engine_ccm: 1498, norm_l_per_100km: 8.6, fuel_price_huf_per_l: 605, general_norm_huf_per_km: 15, price_label: '605 Ft/l (NAV)',
-    business_km: 178, personal_km: 3, commute_km: 18, fuel_cost_huf: 9262, amortization_huf: 2670, total_huf: 11932, expenses: [], expenses_huf: 0,
-    lines: [
-      { date: 'Hétfő, 6.', time: '13:00–14:10', from: 'Budapest, Váci út 30.', to: 'Kecskemét, Kossuth tér 1.', purpose: 'Ügyféltárgyalás', partner: 'Alföld Kft.', km: 86, fuelHuf: 4475, amortizationHuf: 1290 },
-      { date: 'Hétfő, 6.', time: '16:30–17:45', from: 'Kecskemét, Kossuth tér 1.', to: 'Budaörs, Szabadság út 1.', purpose: 'Visszaút ügyféltől', partner: 'Alföld Kft.', km: 92, fuelHuf: 4787, amortizationHuf: 1380 },
-    ],
+  const byTime = (list) => list.map((t) => ({ ...t })).sort((a, b) => a.started_at.localeCompare(b.started_at));
+  const car = { id: 'demo-car', plate: 'MNT-001', make_model: 'Minta autó', usage: 'own', fuel: 'petrol', engine_ccm: 1498, is_default: true };
+  /** The real NAV price of the month (public data), else the newest one; offline, a fixed one. */
+  async function rates(m) {
+    let price = { price_huf_per_l: 605, protected_price_huf_per_l: null };
+    try {
+      const { data } = await sb.from('nav_fuel_prices').select('price_huf_per_l, protected_price_huf_per_l').eq('fuel', 'petrol').lte('month', `${m}-01`).order('month', { ascending: false }).limit(1).maybeSingle();
+      if (data) price = data;
+    } catch {}
+    return { pricePerLitre: Number(price.protected_price_huf_per_l ?? price.price_huf_per_l), protectedPrice: price.protected_price_huf_per_l !== null, normDl: 86, huf_per_km: 15 };
+  }
+  // The closed month is built like the server builds one, so its numbers match its trips.
+  let closes;
+  const buildCloses = async () => {
+    const logged = trips.filter((t) => ym(new Date(t.started_at)) === prev);
+    const odometer = { start: 84000, end: 84000 + logged.reduce((s, t) => s + reportedKm(t.distance_m), 0), yearStart: 72350, yearEnd: null };
+    const snapshot = buildSnapshot({ month: prev, vehicle: { fuel: car.fuel, engine_ccm: car.engine_ccm, usage: car.usage }, trips: logged, rates: await rates(prev), people: { driverName: 'Minta Márton', employerName: 'Minta Kft.' }, odometer, perDiem: null });
+    return [{ id: 'dc', month: prev + '-01', closed_at: new Date(monthStart(month).getTime() + 8 * 3600e3).toISOString(), reopened_at: null, start_odometer: odometer.start, end_odometer: odometer.end, snapshot, snapshot_hash: 'demo0000000000000000000000000000000000000000000000000000000000ab', vehicles: { plate: car.plate, make_model: car.make_model } }];
   };
-  const closes = [{ id: 'dc', month: prev + '-01', closed_at: new Date(monthStart(month).getTime() + 8 * 3600e3).toISOString(), reopened_at: null, start_odometer: 84000, end_odometer: 86130, snapshot, snapshot_hash: 'demo0000000000000000000000000000000000000000000000000000000000ab', vehicles: { plate: 'MNT-001', make_model: 'Minta autó' } }];
   return {
+    month,
     async userId() {
       return 'demo-user';
     },
     async vehicles() {
-      return [{ id: 'demo-car', plate: 'MNT-001', make_model: 'Minta autó', usage: 'own', fuel: 'petrol', engine_ccm: 1498, is_default: true }];
+      return [car];
     },
     async trips(_v, _vs, m) {
-      return trips.filter((t) => ym(new Date(t.started_at)) === m).map((t) => ({ ...t }));
+      return byTime(trips.filter((t) => ym(new Date(t.started_at)) === m));
     },
     async history() {
-      return trips.filter((t) => t.category === 'business' && t.purpose).reverse().map((t) => ({ ...t }));
+      return byTime(trips.filter((t) => t.category === 'business' && t.purpose)).reverse();
     },
     async closes() {
+      closes ??= buildCloses();
       return closes;
     },
     async latest() {
-      return trips[trips.length - 1].started_at;
+      return byTime(trips).at(-1).started_at;
     },
-    async rates() {
-      return { pricePerLitre: 605, protectedPrice: false, normDl: 86, huf_per_km: 15 };
-    },
+    rates,
     async update(t, patch) {
       const row = trips.find((x) => x.id === t.id);
       Object.assign(row, patch);
@@ -457,7 +473,8 @@ function tripCard(t, found = conflicts()) {
   const blank = noPlace(t);
   const route = blank ? (priv ? 'Magánút' : 'Nincs cím: a ✎ gombbal adhatod meg') : `${esc(t.start_address || '–')} → ${esc(t.end_address || '–')}`;
   const open = !t.locked;
-  const pick = open ? `<input type="checkbox" class="pick" data-pick="${esc(t.id)}" aria-label="Kijelölés"${state.selected.has(t.id) ? ' checked' : ''}>` : '<span class="pick-space"></span>';
+  // The label is the 44 px target around the small box.
+  const pick = open ? `<label class="pick-hit"><input type="checkbox" class="pick" data-pick="${esc(t.id)}" aria-label="Kijelölés"${state.selected.has(t.id) ? ' checked' : ''}></label>` : '<span class="pick-space"></span>';
   const segment = t.locked
     ? `<span class="pill">${esc(LABEL[t.category])}</span>`
     : `<div class="seg" role="group" aria-label="Kategória">${CATEGORIES.map(
@@ -516,8 +533,8 @@ function tripList() {
   const pickable = shown.filter((t) => !t.locked);
   const all = pickable.length && pickable.every((t) => state.selected.has(t.id));
   const head = `<div class="trip-head">
-      <div class="c-pick">${pickable.length ? `<input type="checkbox" class="pick" id="pick-all" aria-label="Mind kijelölése"${all ? ' checked' : ''}>` : ''}</div>
-      <div class="c-main"><span class="only-phone">${pickable.length ? 'Mind kijelölése' : ''}</span><span class="only-wide">Út</span></div>
+      <div class="c-pick">${pickable.length ? `<label class="pick-hit"><input type="checkbox" class="pick" id="pick-all" aria-label="Mind kijelölése"${all ? ' checked' : ''}></label>` : ''}</div>
+      <div class="c-main">${pickable.length ? '<label class="only-phone" for="pick-all">Mind kijelölése</label>' : ''}<span class="only-wide">Út</span></div>
       <div class="c-km only-wide">Km</div><div class="c-cat only-wide">Kategória</div><div class="c-fields only-wide">Cél · Partner</div><div class="c-edit"></div>
     </div>`;
   return `<div class="trips">${head}${days.map((d) => `<section class="day"><h3>${esc(d.day)}</h3>${d.trips.map((t) => tripCard(t, found)).join('')}</section>`).join('')}</div>`;
@@ -872,15 +889,17 @@ function editDialog(trip) {
   dialog('Út javítása', body, 'Mentés', async (form) => {
     const v = (name) => form.elements[name]?.value.trim() ?? '';
     const kmValue = parseKm(v('km'));
-    if (!(kmValue > 0 && kmValue <= MAX_KM)) return `A km 0 és ${MAX_KM} között legyen, pl. 12,5.`;
+    const meters = Math.round(kmValue * 1000);
+    const kmChanged = Math.abs(meters - trip.distance_m) >= 50;
+    // A short GPS trip keeps its km; only a new value must show in the log.
+    if (!(kmValue >= 0 && kmValue <= MAX_KM) || (kmChanged && kmValue < MIN_KM)) return KM_RANGE;
     const patch = {};
     if (!priv) {
       if (v('from') !== (trip.start_address ?? '')) patch.start_address = v('from') || null;
       if (v('to') !== (trip.end_address ?? '')) patch.end_address = v('to') || null;
       if (trip.category !== 'unreviewed' && !(v('from') && v('to'))) return 'Add meg, honnan és hova mentél: a NAV mindkettőt kéri.';
     }
-    const meters = Math.round(kmValue * 1000);
-    if (Math.abs(meters - trip.distance_m) >= 50) {
+    if (kmChanged) {
       // The times stay; only a new km can make the trip impossible.
       const tooQuick = speedProblem({ ...trip, distance_m: meters });
       if (tooQuick) return tooQuick;
@@ -934,6 +953,7 @@ function addDialog(go) {
       ${field('start', 'Indulás', '', 'type="time" required')}
       ${field('end', 'Érkezés', '', 'type="time" required')}
     </div>
+    <p class="muted small" data-next-day aria-live="polite" hidden></p>
     <div class="seg seg-wide" role="radiogroup" aria-label="Kategória">${radios}</div>
     <div data-place>
       ${field('from', 'Honnan', '', 'maxlength="200" autocomplete="off" placeholder="pl. Szada, Dózsa György út 5."')}
@@ -945,15 +965,15 @@ function addDialog(go) {
   const d = dialog('Út hozzáadása', body, 'Hozzáadás', async (form) => {
     const v = (name) => form.elements[name].value.trim();
     const category = form.elements.category.value;
-    const startedAt = new Date(`${v('day')}T${v('start')}:00`);
-    const endedAt = new Date(`${v('day')}T${v('end')}:00`);
+    const { startedAt, endedAt, wrapped } = timesOf(form);
     const kmValue = parseKm(v('km'));
     if (!v('day') || !v('start') || !v('end') || isNaN(startedAt) || isNaN(endedAt)) return 'Add meg a napot, az indulást és az érkezést.';
     if (endedAt <= startedAt) return 'Az érkezés legyen később, mint az indulás.';
+    if (wrapped && endedAt - startedAt > MAX_TRIP_MS) return 'Az érkezés korábbi, mint az indulás. Ha éjfél után érkeztél, az út legfeljebb 14 óra lehet.';
     if (endedAt > new Date()) return 'Jövőbeli utat nem lehet felvenni.';
     const month = ym(startedAt);
     if (activeClose(month)) return `${monthName(month)} le van zárva. Az appban nyithatod újra, ha javítani kell.`;
-    if (!(kmValue > 0 && kmValue <= MAX_KM)) return `A km 0 és ${MAX_KM} között legyen, pl. 12,5.`;
+    if (!(kmValue >= MIN_KM && kmValue <= MAX_KM)) return KM_RANGE;
     const priv = category === 'personal';
     if (!priv && !(v('from') && v('to'))) return 'Add meg, honnan és hova mentél: a NAV mindkettőt kéri.';
     const times = { id: 'new', started_at: startedAt.toISOString(), ended_at: endedAt.toISOString(), distance_m: Math.round(kmValue * 1000) };
@@ -1005,6 +1025,25 @@ function addDialog(go) {
   };
   d.querySelectorAll('input[name="category"]').forEach((r) => r.addEventListener('change', sync));
   sync();
+  // Past midnight: say which day the arrival falls on.
+  const note = d.querySelector('[data-next-day]');
+  const nextDay = () => {
+    const { startedAt, endedAt, wrapped } = timesOf(d.querySelector('form'));
+    note.hidden = !wrapped || isNaN(endedAt) || endedAt - startedAt > MAX_TRIP_MS;
+    // The Hungarian date ends in its own full stop ("november 8.").
+    note.textContent = note.hidden ? '' : `Érkezés másnap: ${endedAt.toLocaleDateString('hu-HU', { month: 'long', day: 'numeric' })}`;
+  };
+  ['day', 'start', 'end'].forEach((name) => d.querySelector(`[name="${name}"]`).addEventListener('input', nextDay));
+}
+
+/** The add form's times; an arrival before the departure is the next day's. */
+function timesOf(form) {
+  const v = (name) => form.elements[name].value.trim();
+  const startedAt = new Date(`${v('day')}T${v('start')}:00`);
+  const endedAt = new Date(`${v('day')}T${v('end')}:00`);
+  const wrapped = endedAt < startedAt;
+  if (wrapped) endedAt.setDate(endedAt.getDate() + 1);
+  return { startedAt, endedAt, wrapped };
 }
 
 /* ---------- Login ---------- */
@@ -1061,6 +1100,7 @@ function loginView() {
 async function route() {
   state.demo = location.hash === '#demo';
   state.api = state.demo ? demo : real;
+  state.month = state.demo ? demo.month : ym(new Date());
   state.history = [];
   state.selected.clear();
   if (!state.demo) {

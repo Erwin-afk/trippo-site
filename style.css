@@ -16,6 +16,8 @@ table { width: 100%; border-collapse: collapse; font-size: 14px; }
 th, td { text-align: left; padding: 8px 6px; border-bottom: 1px solid var(--line); vertical-align: top; }
 .todo { background: #fff3cd; color: #6b4e00; padding: 0 4px; border-radius: 4px; }
 nav.links { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 40px; font-size: 14px; }
+/* On touch screens every footer link is a 44 px target. */
+@media (pointer: coarse), (max-width: 760px) { nav.links { gap: 0 18px; } nav.links a { display: inline-flex; align-items: center; min-height: 44px; } }
 .btn { display: inline-block; background: var(--accent); color: #fff; padding: 12px 18px; border-radius: 12px; font-weight: 700; text-decoration: none; }
 
 /* Shared header, same on every page. */

@@ -275,9 +275,11 @@ function dashboardView(clients, demo) {
   };
   const paint = () => {
     const q = document.getElementById('search').value.trim().toLowerCase();
+    // Plates match with or without the dash and spaces: "bbb222" finds BBB-222.
+    const plain = (s) => s.toLowerCase().replace(/[\s-]/g, '');
     const shown = clients
       .filter((c) => filter === 'all' || !statusOf(c, wanted))
-      .filter((c) => !q || (c.name || '').toLowerCase().includes(q) || c.plates.some((p) => p.toLowerCase().includes(q)))
+      .filter((c) => !q || (c.name || '').toLowerCase().includes(q) || (plain(q) && c.plates.some((p) => plain(p).includes(plain(q)))))
       .sort((a, b) => statusOf(a, wanted) - statusOf(b, wanted) || (a.name || '').localeCompare(b.name || '', 'hu'));
     const body = document.getElementById('rows');
     body.innerHTML = shown.map(row).join('') || '<tr><td colspan="4" class="muted">Nincs találat.</td></tr>';
@@ -378,7 +380,8 @@ function clientView(id, name, closes, demo, reopened = []) {
 
 const LINK_ERRORS = {
   claimed: 'Ezt a linket már egy könyvelő felvette az ügyfelei közé. Ha te voltál, lépj be azzal a fiókkal.',
-  revoked: 'Ezt a linket az ügyfeled visszavonta. Kérj tőle újat a Trippo appból.',
+  // The server says the same for a link that never existed: it doesn't reveal which links exist.
+  revoked: 'Ez a link nem érvényes, vagy az ügyfeled visszavonta. Ellenőrizd, hogy teljes-e a link, vagy kérj újat az ügyfeledtől a Trippo appból.',
   'own link': 'Ez a saját linked: az ügyfelek közé csak más fiókjának linkjét lehet felvenni.',
 };
 

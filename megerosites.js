@@ -9,20 +9,22 @@ const button = document.getElementById('confirm');
 const message = document.getElementById('message');
 
 if (!/^[0-9a-f]{64}$/.test(token)) {
-  message.textContent = 'Ez a link nem érvényes.';
+  message.textContent = 'Ez a link nem teljes vagy elírták. Nyisd meg újra a levélből, vagy másold be az egészet.';
   button.classList.add('hidden');
 }
 
 button.addEventListener('click', async () => {
   button.disabled = true;
+  let status;
   try {
     const res = await fetch(FN, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ confirm: token }) });
-    const { status } = await res.json();
-    if (status !== 'confirmed') throw new Error(status);
-    message.textContent = 'Köszönjük! A lezárt hónapokat ezentúl e-mailben kapod.';
-    button.classList.add('hidden');
+    ({ status } = await res.json());
   } catch {
-    message.textContent = 'Ez a link már nem érvényes. Kérj újat az ügyfeledtől.';
-    button.classList.add('hidden');
+    // No answer: the link may be fine, so the button stays for another try.
+    message.textContent = 'Nem értük el a szervert. Van internet? Próbáld újra.';
+    button.disabled = false;
+    return;
   }
+  message.textContent = status === 'confirmed' ? 'Köszönjük! A lezárt hónapokat ezentúl e-mailben kapod.' : 'Ez a link már nem érvényes. Kérj újat az ügyfeledtől.';
+  button.classList.add('hidden');
 });

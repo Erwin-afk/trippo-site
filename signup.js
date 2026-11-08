@@ -9,10 +9,19 @@ document.addEventListener('DOMContentLoaded', () => {
   const say = (text) => {
     message.textContent = text;
   };
+  // A wrong address: say why, mark the field for screen readers, and put the cursor back in it.
+  const wrong = (text) => {
+    form.email.setAttribute('aria-invalid', 'true');
+    form.email.setAttribute('aria-describedby', 'signup-message');
+    form.email.focus();
+    say(text);
+  };
+  form.email.addEventListener('input', () => form.email.removeAttribute('aria-invalid'));
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     const email = form.email.value.trim();
-    if (!/^[^\s@,;<>]+@[^\s@,;<>]+\.[^\s@,;<>]+$/.test(email)) return say('Ez nem tűnik e-mail-címnek.');
+    if (!email) return wrong('Írd be az e-mail-címed.');
+    if (!/^[^\s@,;<>]+@[^\s@,;<>]+\.[^\s@,;<>]+$/.test(email)) return wrong('Ez nem tűnik e-mail-címnek. Nézd meg, nincs-e benne elírás.');
     button.disabled = true;
     try {
       const res = await fetch('https://rudnmzhfgnynlmjdrwoy.supabase.co/functions/v1/newsletter', {
@@ -24,7 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (status === 'check') {
         say('Küldtünk egy levelet. A benne lévő gombbal erősítsd meg a feliratkozást.');
         form.email.value = '';
-      } else if (status === 'invalid') say('Ez nem tűnik e-mail-címnek.');
+      } else if (status === 'invalid') wrong('Ez nem tűnik e-mail-címnek. Nézd meg, nincs-e benne elírás.');
       else say('Most nem sikerült. Próbáld újra később.');
     } catch {
       say('Most nem sikerült. Van internet?');

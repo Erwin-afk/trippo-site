@@ -2,14 +2,14 @@
 [hidden] { display: none !important; }
 .small { font-size: 13px; }
 #app.loading { opacity: .5; pointer-events: none; transition: opacity .15s ease; }
-button.icon { padding: 6px 10px; font-size: 16px; line-height: 1; border-radius: 10px; }
+button.icon { padding: 6px 10px; font-size: 16px; line-height: 1; border-radius: 10px; min-width: 44px; min-height: 44px; }
 
 .head .muted { display: block; margin-top: 4px; }
 .pickers { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
 select { font: inherit; font-size: 15px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--card); color: var(--text); max-width: 100%; }
 .month-nav { display: flex; align-items: center; gap: 4px; background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 4px; }
 .month-nav b { min-width: 150px; text-align: center; font-size: 15px; }
-.month-nav button { border: 0; padding: 6px 12px; font-size: 20px; line-height: 1; background: none; }
+.month-nav button { border: 0; padding: 6px 12px; font-size: 20px; line-height: 1; background: none; min-width: 44px; min-height: 44px; }
 .month-nav button:hover:not(:disabled) { background: var(--bg); }
 
 .stats.four { grid-template-columns: repeat(4, 1fr); }
@@ -58,6 +58,9 @@ select { font: inherit; font-size: 15px; padding: 10px 12px; border: 1px solid v
 .c-fields { grid-area: fields; min-width: 0; }
 .c-fields:empty { display: none; }
 input.pick { width: 20px; height: 20px; margin: 0; padding: 0; accent-color: var(--accent); cursor: pointer; }
+/* A 44 px target that takes no room: it reaches into the padding around the box. */
+.pick-hit { display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; margin: -12px; cursor: pointer; }
+.trip-head label.only-phone { cursor: pointer; }
 .pick-space { display: inline-block; width: 20px; }
 .when { display: block; font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
 .route { display: block; font-weight: 600; overflow-wrap: anywhere; }
@@ -158,12 +161,12 @@ body.has-bulk .toast { bottom: 96px; }
   .stats.four { grid-template-columns: 1fr 1fr; }
   .fields { grid-template-columns: 1fr; }
   .c-cat .seg { width: 100%; }
-  .seg button { flex: 1; padding: 10px 6px; }
+  .seg button { flex: 1; padding: 10px 6px; min-height: 44px; }
   .tools .filter { flex-wrap: wrap; }
   .tools #add-trip { width: 100%; }
   .bulk-in { justify-content: center; }
   .bulk-actions { width: 100%; }
-  .bulk-actions button { flex: 1; padding: 10px 6px; }
+  .bulk-actions button { flex: 1; padding: 10px 6px; min-height: 44px; }
   .dl-row, .dl-row.three { grid-template-columns: 1fr 1fr; }
   .dl-row.three > :first-child { grid-column: 1 / -1; }
   .sheet-dialog { margin: auto auto 0; width: 100%; max-width: 100%; border-radius: 20px 20px 0 0; }
