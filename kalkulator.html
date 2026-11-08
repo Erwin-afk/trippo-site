@@ -49,7 +49,7 @@
   <label>Hónap<select id="km-month"></select></label>
   <label>Üzemanyag<select id="km-fuel"><option value="petrol">Benzin</option><option value="diesel">Dízel</option><option value="lpg">LPG</option></select></label>
   <label>Hengerűrtartalom (cm³)<input id="km-ccm" inputmode="numeric" value="1498"></label>
-  <label>Üzleti km<input id="km-km" inputmode="numeric" value="1000"></label>
+  <label>Üzleti km<input id="km-km" inputmode="decimal" value="1000"></label>
 </form>
 <div class="calc-result" aria-live="polite">
   <div><span>Fogyasztási norma</span><b id="km-norm"></b></div>
@@ -75,7 +75,7 @@
 <p>Bérelt személyautónál az áfa 50%-a nem vonható le (Áfa tv. 124. § (4)), de a vállalkozás dönthet úgy, hogy a tényleges üzleti használat alapján von le (125/A. §). Ehhez útnyilvántartás kell. Zárt végű lízingnél és vásárlásnál az áfa általában nem vonható le.</p>
 <form class="calc-form" id="vat-form">
   <label>Havi nettó díj (Ft)<input id="vat-fee" inputmode="numeric" value="150000"></label>
-  <label>Üzleti arány (%)<input id="vat-share" inputmode="numeric" value="85"></label>
+  <label>Üzleti arány (%)<input id="vat-share" inputmode="decimal" value="85"></label>
   <label>Hónapok száma<input id="vat-months" inputmode="numeric" value="36"></label>
 </form>
 <div class="calc-result" aria-live="polite">

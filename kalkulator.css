@@ -3,6 +3,9 @@
 .calc-form label { display: block; font-size: 14px; font-weight: 600; }
 .calc-form input, .calc-form select { display: block; font: inherit; font-weight: 400; width: 100%; box-sizing: border-box; margin-top: 6px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--card); color: var(--text); }
 .calc-form input:focus, .calc-form select:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+.calc-form input[aria-invalid="true"] { border-color: #d93d42; }
+.calc-error { display: block; margin-top: 6px; font-size: 13px; font-weight: 600; color: #d93d42; }
+.calc-error:empty { display: none; }
 .calc-result { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 8px 18px; margin: 16px 0 8px; }
 .calc-result div { display: flex; justify-content: space-between; gap: 16px; padding: 10px 0; border-bottom: 1px solid var(--line); }
 .calc-result div:last-child { border-bottom: 0; }

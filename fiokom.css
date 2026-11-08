@@ -74,6 +74,8 @@ input.pick { width: 20px; height: 20px; margin: 0; padding: 0; accent-color: var
 .seg button:hover:not([aria-pressed="true"]):not(:disabled) { background: var(--bg); }
 .seg button:disabled:not([aria-pressed="true"]) { opacity: .35; cursor: not-allowed; }
 .phone-only { margin: 6px 0 0; }
+.conflict { margin: 6px 0 0; color: #b86f00; font-weight: 600; }
+@media (prefers-color-scheme: dark) { .conflict { color: #f0a830; } }
 .pill { background: var(--bg); border: 1px solid var(--line); color: var(--text); }
 .pill.ok { border-color: transparent; }
 .fields { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
@@ -115,8 +117,11 @@ input.pick { width: 20px; height: 20px; margin: 0; padding: 0; accent-color: var
 .bulk-actions { display: flex; gap: 6px; flex-wrap: wrap; }
 .bulk-actions button { padding: 9px 12px; font-size: 14px; }
 body.has-bulk main { padding-bottom: 120px; }
-.toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: 24px; z-index: 40; max-width: min(560px, calc(100% - 32px)); background: var(--text); color: var(--bg); padding: 12px 16px; border-radius: 14px; font-size: 14px; box-shadow: 0 8px 30px rgba(0, 0, 0, .2); }
+/* Centred with margins: #app's entrance animation owns `transform`. */
+.toast { position: fixed; left: 16px; right: 16px; margin: 0 auto; bottom: 24px; z-index: 40; width: max-content; max-width: min(560px, calc(100% - 32px)); box-sizing: border-box; background: var(--text); color: var(--bg); padding: 12px 16px; border-radius: 14px; font-size: 14px; box-shadow: 0 8px 30px rgba(0, 0, 0, .2); }
 .toast.error { background: #d93d42; color: #fff; }
+.toast:has(button) { display: flex; align-items: center; gap: 12px; }
+.toast button { flex: none; min-height: 44px; padding: 8px 14px; border: 1px solid currentColor; border-radius: 10px; background: transparent; color: inherit; font-size: 14px; font-weight: 700; }
 body.has-bulk .toast { bottom: 96px; }
 
 /* Edit and add. */
