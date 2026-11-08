@@ -147,3 +147,28 @@ body.landing { background: linear-gradient(180deg, var(--card) 0, var(--bg) 620p
 .pill, button, .button { transition: background .15s ease, border-color .15s ease, color .15s ease, transform .1s ease; }
 button:active:not(:disabled) { transform: scale(.98); }
 .month.open .details { animation: fade .25s ease both; }
+
+/* E-mail code step (otp.js), shared by the portal and Útjaim. */
+.code-step { gap: 14px; }
+.email-chip { display: inline-flex; align-items: center; gap: 8px; max-width: 100%; justify-self: start; border-radius: 999px; padding: 7px 14px; background: var(--bg); font-size: 15px; }
+.email-chip span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.email-chip .pencil { color: var(--accent); }
+.otp { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; max-width: 380px; }
+.otp-box { width: 100%; aspect-ratio: .82; padding: 0; text-align: center; font-size: 28px; font-weight: 800; font-variant-numeric: tabular-nums; border-radius: 12px; border-width: 1.5px; background: var(--bg); caret-color: var(--accent); transition: border-color .15s ease, background .15s ease, box-shadow .15s ease; }
+.otp-box:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent); }
+.otp-box.filled { border-color: var(--text); animation: otp-pop .2s cubic-bezier(.3, 1.6, .5, 1) both; }
+.otp.busy .otp-box { background: color-mix(in srgb, var(--accent) 12%, var(--bg)); border-color: var(--accent); }
+.otp.bad .otp-box { border-color: #d93d42; background: color-mix(in srgb, #d93d42 9%, var(--bg)); }
+.otp.bad { animation: otp-shake .42s ease both; }
+@keyframes otp-pop { from { transform: scale(.82); } to { transform: scale(1); } }
+@keyframes otp-shake { 0%, 100% { transform: translateX(0); } 15%, 55% { transform: translateX(-9px); } 35%, 75% { transform: translateX(9px); } }
+.checking { margin: 0; color: var(--muted); font-size: 14px; }
+.otp-helpers { display: flex; gap: 8px; flex-wrap: wrap; }
+.otp-helpers:empty { display: none; }
+.otp-chip { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border: 1px solid var(--line); border-radius: 999px; background: var(--bg); color: var(--text); font: inherit; font-size: 14px; font-weight: 600; text-decoration: none; cursor: pointer; }
+.otp-chip:hover { border-color: var(--muted); }
+.resend { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; }
+.resend:disabled { opacity: 1; color: var(--muted); }
+.resend:not(:disabled) { color: var(--accent); }
+.ring { width: 18px; height: 18px; border-radius: 50%; flex: none; background: conic-gradient(var(--accent) calc(var(--left, 1) * 360deg), var(--line) 0); -webkit-mask: radial-gradient(circle, transparent 52%, #000 54%); mask: radial-gradient(circle, transparent 52%, #000 54%); }
+@media (prefers-reduced-motion: reduce) { .otp-box.filled, .otp.bad { animation: none; } }

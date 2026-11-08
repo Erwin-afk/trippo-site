@@ -7,6 +7,7 @@
  * Everything from the server goes through esc(): this page holds a login, and trip purposes,
  * partners and names are typed by clients.
  */
+import { setupLogin } from './otp.js';
 import { XLSX_MIME, clientsWorkbook, isShareLog, monthWorkbook, payableOf, yearWorkbook } from './workbook.js';
 
 const BASE = 'https://rudnmzhfgnynlmjdrwoy.supabase.co';
@@ -155,46 +156,23 @@ function loginForm(title, text) {
       <div><label for="email">E-mail-cím</label><input id="email" type="email" autocomplete="email" required></div>
       <button class="primary" type="submit">Belépési kód kérése</button>
     </form>
-    <form id="code-form" class="stack hidden">
-      <p class="muted">Elküldtük a kódot ide: <b id="sent-to"></b></p>
-      <div><label for="code">Belépési kód</label><input id="code" inputmode="numeric" autocomplete="one-time-code" required></div>
-      <button class="primary" type="submit">Belépés</button>
-    </form>
+    <div id="code-step" class="stack code-step hidden"></div>
     <p class="error hidden" id="login-error"></p>
     <p class="muted">A belépéssel elfogadod a <a href="aszf.html#konyvelo">feltételeket</a>, és hozzájárulsz, hogy a böngésződ a kilépésig megőrizze a belépésedet. <a href="adatvedelem.html#sutik">Részletek</a></p>
   </div>`;
 }
 
 function bindLogin() {
-  const fail = (text) => {
-    const e = document.getElementById('login-error');
-    e.textContent = text;
-    e.classList.remove('hidden');
-  };
-  let email = '';
-  on('#email-form', 'submit', async (ev) => {
-    ev.preventDefault();
-    const button = ev.target.querySelector('button');
-    button.disabled = true;
-    email = document.getElementById('email').value.trim().toLowerCase();
-    const { error } = await sb.auth.signInWithOtp({ email, options: { shouldCreateUser: true } });
-    button.disabled = false;
-    if (error) return fail('Nem sikerült elküldeni a kódot. Próbáld újra pár perc múlva.');
-    document.getElementById('login-error').classList.add('hidden');
-    document.getElementById('sent-to').textContent = email;
-    document.getElementById('email-form').classList.add('hidden');
-    document.getElementById('code-form').classList.remove('hidden');
-    document.getElementById('code').focus();
-  });
-  on('#code-form', 'submit', async (ev) => {
-    ev.preventDefault();
-    const button = ev.target.querySelector('button');
-    button.disabled = true;
-    const token = document.getElementById('code').value.replace(/\D/g, '');
-    const { error } = await sb.auth.verifyOtp({ email, token, type: 'email' });
-    button.disabled = false;
-    if (error) return fail('Hibás vagy lejárt kód.');
-    route();
+  setupLogin({
+    send: async (email) => {
+      const { error } = await sb.auth.signInWithOtp({ email, options: { shouldCreateUser: true } });
+      return error ? 'Nem sikerült elküldeni a kódot. Próbáld újra pár perc múlva.' : null;
+    },
+    verify: async (email, token) => {
+      const { error } = await sb.auth.verifyOtp({ email, token, type: 'email' });
+      return error ? 'Hibás vagy lejárt kód. Ellenőrizd, vagy kérj újat.' : null;
+    },
+    done: () => route(),
   });
 }
 

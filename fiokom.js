@@ -6,6 +6,7 @@
  *   #demo    the same screen with made-up data, no login
  * Everything from the server goes through esc(): purposes and partners are typed by people.
  */
+import { setupLogin } from './otp.js';
 import { XLSX_MIME, isShareLog, monthWorkbook, payableOf, yearWorkbook } from './workbook.js';
 
 const BASE = 'https://rudnmzhfgnynlmjdrwoy.supabase.co';
@@ -441,11 +442,7 @@ function loginView() {
           <div><label for="email">E-mail-cím</label><input id="email" type="email" autocomplete="email" required></div>
           <button class="primary" type="submit">Belépési kód kérése</button>
         </form>
-        <form id="code-form" class="stack hidden">
-          <p class="muted">Elküldtük a kódot ide: <b id="sent-to"></b></p>
-          <div><label for="code">Belépési kód</label><input id="code" inputmode="numeric" autocomplete="one-time-code" required></div>
-          <button class="primary" type="submit">Belépés</button>
-        </form>
+        <div id="code-step" class="stack code-step hidden"></div>
         <p class="error hidden" id="login-error"></p>
         <p class="muted small">A belépéssel hozzájárulsz, hogy a böngésződ a kilépésig megőrizze a belépésedet. <a href="adatvedelem.html#sutik">Részletek</a></p>
       </div>
@@ -459,39 +456,20 @@ function loginView() {
         <div><h3>A lezárás az appban</h3><p>A hónapot az app zárja le, és küldi a könyvelődnek a PDF-et.</p></div>
       </div>
     </section>`);
-  const fail = (text) => {
-    const e = document.getElementById('login-error');
-    e.textContent = text;
-    e.classList.remove('hidden');
-  };
-  let email = '';
-  on('#email-form', 'submit', async (ev) => {
-    ev.preventDefault();
-    const button = ev.target.querySelector('button');
-    button.disabled = true;
-    email = document.getElementById('email').value.trim().toLowerCase();
+  setupLogin({
     // No new accounts from the web: the app sets up the car first.
-    const { error } = await sb.auth.signInWithOtp({ email, options: { shouldCreateUser: false } });
-    button.disabled = false;
-    if (error) {
-      const unknown = /signup|not allowed|not found/i.test(error.message || '');
-      return fail(unknown ? 'Ezzel a címmel még nincs Trippo-fiók. Töltsd le az appot, és először ott lépj be.' : 'Nem sikerült elküldeni a kódot. Próbáld újra pár perc múlva.');
-    }
-    document.getElementById('login-error').classList.add('hidden');
-    document.getElementById('sent-to').textContent = email;
-    document.getElementById('email-form').classList.add('hidden');
-    document.getElementById('code-form').classList.remove('hidden');
-    document.getElementById('code').focus();
-  });
-  on('#code-form', 'submit', async (ev) => {
-    ev.preventDefault();
-    const button = ev.target.querySelector('button');
-    button.disabled = true;
-    const token = document.getElementById('code').value.replace(/\D/g, '');
-    const { error } = await sb.auth.verifyOtp({ email, token, type: 'email' });
-    button.disabled = false;
-    if (error) return fail('Hibás vagy lejárt kód.');
-    route();
+    send: async (email) => {
+      const { error } = await sb.auth.signInWithOtp({ email, options: { shouldCreateUser: false } });
+      if (!error) return null;
+      return /signup|not allowed|not found/i.test(error.message || '')
+        ? 'Ezzel a címmel még nincs Trippo-fiók. Töltsd le az appot, és először ott lépj be.'
+        : 'Nem sikerült elküldeni a kódot. Próbáld újra pár perc múlva.';
+    },
+    verify: async (email, token) => {
+      const { error } = await sb.auth.verifyOtp({ email, token, type: 'email' });
+      return error ? 'Hibás vagy lejárt kód. Ellenőrizd, vagy kérj újat.' : null;
+    },
+    done: route,
   });
 }
 
