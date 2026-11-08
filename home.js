@@ -32,6 +32,16 @@
   });
 })();
 
+/* Phone menu: a same-page link (#arak) leaves the page where it is, so close the sheet; Esc closes it too. */
+document.addEventListener('DOMContentLoaded', () => {
+  const menu = document.querySelector('.menu');
+  if (!menu) return;
+  menu.querySelectorAll('.sheet a').forEach((a) => a.addEventListener('click', () => (menu.open = false)));
+  addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') menu.open = false;
+  });
+});
+
 /* Film: plays silently while in view. With reduced motion it waits for a press on the controls. */
 document.addEventListener('DOMContentLoaded', () => {
   const film = document.getElementById('film');

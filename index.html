@@ -27,7 +27,18 @@
 <header class="bar">
   <div class="bar-in">
     <a class="brand" href="index.html"><span class="logo"></span><span>Trippo</span></a>
-    <nav class="bar-nav"><a href="#hogyan">Hogyan működik</a><a href="#arak">Árak</a><a href="konyvelo.html">Könyvelőknek</a><a href="fiokom.html">Belépés</a></nav>
+    <nav class="bar-nav" aria-label="Fő menü"><a href="#hogyan">Hogyan működik</a><a href="#arak">Árak</a><a href="kalkulator.html">Kalkulátor</a><a href="#utmutatok">Útmutatók</a><a href="konyvelo.html">Könyvelőknek</a></nav>
+    <div class="bar-actions">
+      <a class="bar-login" href="fiokom.html">Belépés</a>
+      <a class="bar-cta" href="#hirlevel">Szólj, ha kész</a>
+      <details class="menu">
+        <summary aria-label="Menü"><span class="burger" aria-hidden="true"></span></summary>
+        <div class="sheet">
+          <nav aria-label="Menü"><a href="#hogyan">Hogyan működik</a><a href="#arak">Árak</a><a href="kalkulator.html">Kalkulátor</a><a href="#utmutatok">Útmutatók</a><a href="konyvelo.html">Könyvelőknek</a><a href="tamogatas.html">Támogatás</a></nav>
+          <div class="sheet-actions"><a class="sheet-login" href="fiokom.html">Belépés</a><a class="sheet-cta" href="#hirlevel">Szólj, ha kész</a></div>
+        </div>
+      </details>
+    </div>
   </div>
 </header>
 
@@ -244,7 +255,7 @@
   </div>
 </section>
 
-<section class="section">
+<section class="section" id="utmutatok">
   <div class="wrap">
     <h2 class="title">Útmutatók</h2>
     <div class="guides">
