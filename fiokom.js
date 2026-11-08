@@ -72,6 +72,14 @@ const real = {
     if (error) throw error;
     return data;
   },
+  /** The newest trip of this car, for an empty month to point at. */
+  async latest(vehicle, vehicles) {
+    let q = sb.from('trips').select('started_at').order('started_at', { ascending: false }).limit(1);
+    if (vehicles.length > 1) q = vehicle.is_default ? q.or(`vehicle_id.eq.${vehicle.id},vehicle_id.is.null`) : q.eq('vehicle_id', vehicle.id);
+    const { data, error } = await q;
+    if (error) throw error;
+    return data[0]?.started_at ?? null;
+  },
   async closes(vehicle) {
     const { data, error } = await sb
       .from('month_closes')
@@ -130,6 +138,9 @@ const demo = (() => {
     async closes() {
       return closes;
     },
+    async latest() {
+      return trips[trips.length - 1].started_at;
+    },
     async update(t, patch) {
       const row = trips.find((x) => x.id === t.id);
       Object.assign(row, patch);
@@ -140,7 +151,7 @@ const demo = (() => {
 
 /* ---------- State ---------- */
 
-const state = { api: real, demo: false, vehicles: [], vehicle: null, month: ym(new Date()), trips: [], closes: [], filter: 'all', error: null };
+const state = { api: real, demo: false, vehicles: [], vehicle: null, month: ym(new Date()), trips: [], closes: [], latest: null, filter: 'all', error: null };
 
 const activeClose = (month) => state.closes.find((c) => c.month.slice(0, 7) === month && !c.reopened_at);
 const reopened = (month) => !activeClose(month) && state.closes.some((c) => c.month.slice(0, 7) === month && c.reopened_at);
@@ -154,6 +165,7 @@ async function load() {
     const keep = state.vehicles.find((v) => v.id === state.vehicle?.id);
     state.vehicle = keep ?? state.vehicles.find((v) => v.is_default) ?? state.vehicles[0];
     [state.trips, state.closes] = await Promise.all([state.api.trips(state.vehicle, state.vehicles, state.month), state.api.closes(state.vehicle)]);
+    state.latest = state.trips.length ? null : await state.api.latest(state.vehicle, state.vehicles);
   } catch {
     state.error = 'Nem sikerült betölteni az utakat. Ellenőrizd az internetkapcsolatot, és frissítsd az oldalt.';
   }
@@ -266,7 +278,13 @@ function tripList() {
   const shown = state.trips.filter((t) =>
     state.filter === 'waiting' ? t.category === 'unreviewed' : state.filter === 'business' ? t.category === 'business' : state.filter === 'missing' ? missing(t) || t.category === 'unreviewed' : true,
   );
-  if (!state.trips.length) return '<div class="card empty"><p class="muted">Ebben a hónapban ennél az autónál nincs út.</p></div>';
+  if (!state.trips.length) {
+    const last = state.latest && new Date(state.latest);
+    const jump = last && ym(last) !== state.month ? `<p><button class="primary" id="to-latest" data-month="${ym(last)}">Ugrás: ${esc(monthName(ym(last)))}</button></p>` : '';
+    return `<div class="card empty"><p class="muted">Ebben a hónapban ennél az autónál nincs út.${
+      last ? ` A legutóbbi út: ${esc(last.toLocaleDateString('hu-HU', { year: 'numeric', month: 'long', day: 'numeric' }))}` : ' Még egy út sincs feltöltve: az app a következő szinkronnál küldi fel őket.'
+    }</p>${jump}<p class="muted small">Itt azok az utak látszanak, amelyeket a telefonod már feltöltött. Ha hiányzik egy, nyisd meg az appot internetkapcsolattal.</p></div>`;
+  }
   if (!shown.length) return '<div class="card empty"><p class="muted">Nincs ilyen út ebben a hónapban.</p></div>';
   const days = [];
   for (const t of shown) {
@@ -312,6 +330,7 @@ function bindDashboard(close, yearCloses, year) {
     dashboard();
   };
   on('#prev', 'click', () => go(shift(state.month, -1)));
+  on('#to-latest', 'click', (e) => go(e.target.dataset.month));
   on('#next', 'click', () => go(shift(state.month, 1)));
   on('#car', 'change', async (e) => {
     state.vehicle = state.vehicles.find((v) => v.id === e.target.value);
