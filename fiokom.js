@@ -11,7 +11,7 @@
  * Everything from the server goes through esc(): purposes, partners and addresses are typed by people.
  */
 import { setupLogin } from './otp.js';
-import { MAX_AVG_KMH, buildSnapshot, fuelNormDl, logConflicts, overlaps, reportedKm, tooFast } from './month-snapshot.js';
+import { MAX_AVG_KMH, buildSnapshot, fuelNormDl, jumps, logConflicts, overlaps, reportedKm, straightLineM, tooFast, tooShort } from './month-snapshot.js';
 import { XLSX_MIME, isShareLog, monthWorkbook, payableOf, yearWorkbook } from './workbook.js';
 
 const BASE = 'https://rudnmzhfgnynlmjdrwoy.supabase.co';
@@ -37,7 +37,7 @@ const CATEGORIES = [
 const LABEL = { business: 'Üzleti', personal: 'Magán', commute: 'Munkába járás', unreviewed: 'Döntésre vár' };
 /** What a private trip may keep on the server (the privacy policy; the database enforces it too). */
 const PRIVATE_DETAIL_KEYS = ['road_route', 'stops', 'gaps', 'start_fill', 'note'];
-const TRIP_COLUMNS = 'id, client_id, vehicle_id, started_at, ended_at, start_address, end_address, start_lat, end_lat, distance_m, distance_source, gps_distance_m, category, purpose, partner_name, locked, details';
+const TRIP_COLUMNS = 'id, client_id, vehicle_id, started_at, ended_at, start_address, end_address, start_lat, start_lng, end_lat, end_lng, distance_m, distance_source, gps_distance_m, category, purpose, partner_name, locked, details, updated_at';
 /** What turning a trip private wipes on the server (see categoryPatch): kept in the browser for the undo. */
 const UNDO_COLUMNS = ['category', 'start_lat', 'start_lng', 'end_lat', 'end_lng', 'start_address', 'end_address', 'route_polyline', 'purpose', 'partner_name', 'details'];
 /** Fuel → the NAV price list it uses (as in the close-month function). */
@@ -45,7 +45,7 @@ const FAMILY = { petrol: 'petrol', hybrid_petrol: 'petrol', plugin_petrol: 'petr
 const MAX_KM = 3000;
 /** Less than this shows as 0 km in the log. */
 const MIN_KM = 0.5;
-const KM_RANGE = `A km 0,5 és ${MAX_KM} között legyen, pl. 12,5.`;
+const KM_RANGE = 'Írj be 0,5 és 3 000 km közötti értéket, pl. 12,5.';
 /** An arrival "before" the departure is the next morning, for a drive of up to this long (the app warns above it too). */
 const MAX_TRIP_MS = 14 * 3_600_000;
 
@@ -154,9 +154,17 @@ const real = {
     return { pricePerLitre: Number(protectedPrice ?? price.price_huf_per_l), protectedPrice: protectedPrice !== null, normDl, huf_per_km: Number(rate.value) };
   },
   async update(trip, patch) {
-    const { data, error } = await sb.from('trips').update(patch).eq('id', trip.id).select(TRIP_COLUMNS).single();
+    let q = sb.from('trips').update(patch).eq('id', trip.id);
+    // Changed since this page read it (the phone synced in between): don't overwrite that unseen.
+    if (trip.updated_at) q = q.eq('updated_at', trip.updated_at);
+    const { data, error } = await q.select(TRIP_COLUMNS);
     if (error) throw error;
-    return data;
+    if (!data.length) {
+      const { data: now } = await sb.from('trips').select(TRIP_COLUMNS).eq('id', trip.id).maybeSingle();
+      throw Object.assign(new Error('changed'), { serverCopy: now ?? null });
+    }
+    webEdits.saved(data[0], patch);
+    return data[0];
   },
   async insert(row) {
     const { data, error } = await sb.from('trips').insert(row).select(TRIP_COLUMNS).single();
@@ -177,6 +185,52 @@ const real = {
     return data;
   },
 };
+
+/**
+ * A phone with its own unsynced change to a trip wins over this page (last write wins). So every
+ * save here is noted in this browser, and when the trip later comes back different, its card says
+ * why. Only a convenience: without storage nothing breaks.
+ */
+const webEdits = (() => {
+  const KEY = 'trippo-web-edits';
+  const KEEP_MS = 14 * 86_400_000;
+  const FIELDS = ['category', 'start_address', 'end_address', 'distance_m', 'purpose', 'partner_name'];
+  const read = () => {
+    try {
+      return JSON.parse(localStorage.getItem(KEY) || '{}');
+    } catch {
+      return {};
+    }
+  };
+  const write = (all) => {
+    try {
+      localStorage.setItem(KEY, JSON.stringify(all));
+    } catch {}
+  };
+  return {
+    saved(row, patch) {
+      if (!row?.updated_at) return;
+      const all = read();
+      const fields = Object.fromEntries(FIELDS.filter((k) => k in patch).map((k) => [k, row[k] ?? null]));
+      all[row.id] = { at: row.updated_at, on: Date.now(), fields: { ...(all[row.id]?.fields ?? {}), ...fields } };
+      write(all);
+    },
+    /** Trips saved here that have changed since, and differ from what was saved. */
+    overwritten(trips) {
+      const all = read();
+      const found = new Set();
+      for (const t of trips) {
+        const mine = all[t.id];
+        if (!mine || !t.updated_at || t.updated_at <= mine.at) continue;
+        if (Object.entries(mine.fields).some(([k, v]) => (t[k] ?? null) !== v)) found.add(t.id);
+        delete all[t.id];
+      }
+      for (const [id, e] of Object.entries(all)) if (Date.now() - e.on > KEEP_MS) delete all[id];
+      write(all);
+      return found;
+    },
+  };
+})();
 
 const demo = (() => {
   const now = new Date();
@@ -269,6 +323,8 @@ const demo = (() => {
 const state = {
   api: real, demo: false, vehicles: [], vehicle: null, month: ym(new Date()), trips: [], closes: [], latest: null,
   history: [], rates: null, filter: 'all', selected: new Set(), error: null,
+  /** Trips this browser edited that the phone has since overwritten with its own change. */
+  overwritten: new Set(),
 };
 
 const activeClose = (month) => state.closes.find((c) => c.month.slice(0, 7) === month && !c.reopened_at);
@@ -278,17 +334,22 @@ const noPlace = (t) => !t.start_address && !t.end_address;
 const phoneOnly = (t) => t.category === 'personal' && noPlace(t);
 const noAddress = (t) => t.category === 'business' && noPlace(t);
 const lacksPurpose = (t) => t.category === 'business' && !(t.purpose?.trim() && t.partner_name?.trim());
-/** The month's contradictions, as the close sees them: these keep the app from closing it. */
+/**
+ * The app's NAV checks on this month. Overlap, speed and km below the straight line keep the app
+ * from closing it; a jump (starts far from where the last trip ended) is only a warning.
+ */
 const conflicts = () => {
   const { overlap, speed } = logConflicts(state.trips);
-  return { overlap: new Set(overlap), speed: new Set(speed) };
+  return { overlap: new Set(overlap), speed: new Set(speed), short: new Set(state.trips.filter(tooShort).map((t) => t.id)), jump: new Set(jumps(state.trips)) };
 };
 function conflictNote(t, found = conflicts()) {
-  if (found.overlap.has(t.id)) return 'Időben átfed egy másik úttal. Az appban javíthatod az időpontot, vagy törölheted, ha dupla.';
-  if (found.speed.has(t.id)) return `Az átlagsebesség ${MAX_AVG_KMH} km/h fölött van: ellenőrizd a km-t.`;
+  if (found.overlap.has(t.id)) return { error: true, text: 'Időben átfed egy másik úttal. Az appban javíthatod az időpontot, vagy törölheted, ha dupla.' };
+  if (found.speed.has(t.id)) return { error: true, text: `Az átlagsebesség ${MAX_AVG_KMH} km/h fölött van: ellenőrizd a km-t.` };
+  if (found.short.has(t.id)) return { error: true, text: 'Kevesebb km, mint a légvonal a két vége között: ellenőrizd a km-t.' };
+  if (found.jump.has(t.id)) return { error: false, text: 'Nem ott indul, ahol az előző út véget ért: nem hiányzik előtte egy út?' };
   return null;
 }
-const missing = (t, found) => lacksPurpose(t) || noAddress(t) || !!conflictNote(t, found);
+const missing = (t, found) => lacksPurpose(t) || noAddress(t) || !!conflictNote(t, found)?.error;
 const tripById = (id) => state.trips.find((t) => t.id === id);
 
 async function load() {
@@ -300,6 +361,7 @@ async function load() {
     state.vehicle = keep ?? state.vehicles.find((v) => v.is_default) ?? state.vehicles[0];
     [state.trips, state.closes] = await Promise.all([state.api.trips(state.vehicle, state.vehicles, state.month), state.api.closes(state.vehicle)]);
     state.latest = state.trips.length ? null : await state.api.latest(state.vehicle, state.vehicles);
+    if (!state.demo) state.overwritten = webEdits.overwritten(state.trips);
     // Nice to have: without them the page still works.
     [state.history, state.rates] = await Promise.all([
       state.history.length ? state.history : state.api.history().catch(() => []),
@@ -454,9 +516,13 @@ function openBlock() {
     gaps ? `${gaps} üzleti útnál hiányzik a cél vagy a partner` : '',
     blank ? `${blank} üzleti útnál hiányzik a cím` : '',
     found.speed.size ? `${found.speed.size} útnál ${MAX_AVG_KMH} km/h fölötti az átlagsebesség` : '',
+    found.short.size ? `${found.short.size} útnál kevesebb a km, mint a légvonal` : '',
   ].filter(Boolean);
   // The times can only be changed in the app.
-  const inApp = found.overlap.size ? `${found.overlap.size} út időben átfed egy másikkal: az időpontot az appban javíthatod. Amíg így van, a hónap nem zárható le.` : '';
+  const inApp = [
+    found.overlap.size ? `${found.overlap.size} út időben átfed egy másikkal: az időpontot az appban javíthatod. Amíg így van, a hónap nem zárható le.` : '',
+    found.jump.size ? `${found.jump.size} út nem ott indul, ahol az előző véget ért: nézd meg, nem hiányzik-e egy út.` : '',
+  ].filter(Boolean).join(' ');
   const ready = closable(state.month);
   const head = reopened(state.month) ? 'Javításra újranyitva' : ready && !inApp ? 'Lezárható az appban' : 'Folyamatban';
   const text = todo.length || inApp
@@ -467,6 +533,13 @@ function openBlock() {
   </div>`;
 }
 
+/** What a screen reader says for a row's checkbox: which trip it picks. */
+const pickLabel = (t) => {
+  const when = new Date(t.started_at).toLocaleDateString('hu-HU', { month: 'short', day: 'numeric' });
+  const where = noPlace(t) ? LABEL[t.category] : `${t.start_address || '–'} → ${t.end_address || '–'}`;
+  return `Kijelölés: ${when} ${time(t.started_at)}, ${where}`;
+};
+
 function tripCard(t, found = conflicts()) {
   const priv = t.category === 'personal';
   const problem = t.locked ? null : conflictNote(t, found);
@@ -474,7 +547,7 @@ function tripCard(t, found = conflicts()) {
   const route = blank ? (priv ? 'Magánút' : 'Nincs cím: a ✎ gombbal adhatod meg') : `${esc(t.start_address || '–')} → ${esc(t.end_address || '–')}`;
   const open = !t.locked;
   // The label is the 44 px target around the small box.
-  const pick = open ? `<label class="pick-hit"><input type="checkbox" class="pick" data-pick="${esc(t.id)}" aria-label="Kijelölés"${state.selected.has(t.id) ? ' checked' : ''}></label>` : '<span class="pick-space"></span>';
+  const pick = open ? `<label class="pick-hit"><input type="checkbox" class="pick" data-pick="${esc(t.id)}" aria-label="${esc(pickLabel(t))}"${state.selected.has(t.id) ? ' checked' : ''}></label>` : '<span class="pick-space"></span>';
   const segment = t.locked
     ? `<span class="pill">${esc(LABEL[t.category])}</span>`
     : `<div class="seg" role="group" aria-label="Kategória">${CATEGORIES.map(
@@ -496,7 +569,8 @@ function tripCard(t, found = conflicts()) {
     <div class="c-pick">${pick}</div>
     <div class="c-main">
       <span class="when">${esc(time(t.started_at))}–${esc(time(t.ended_at))}</span><span class="route${blank ? ' muted' : ''}">${route}</span>
-      ${problem ? `<p class="small conflict">${esc(problem)}</p>` : ''}
+      ${problem ? `<p class="small conflict">${esc(problem.text)}</p>` : ''}
+      ${state.overwritten.has(t.id) ? '<p class="small conflict">Közben a telefonon is módosítottad ezt az utat, és az a változat maradt meg.</p>' : ''}
       ${phoneOnly(t) && open ? '<p class="muted small phone-only">A magánút címe csak a telefonodon van, ezért üzletivé az appban teheted.</p>' : ''}
       ${open ? '<span class="saved muted small" aria-live="polite"></span>' : ''}
     </div>
@@ -541,13 +615,14 @@ function tripList() {
 }
 
 function bulkBar() {
+  // One row on a phone: ✕, the count, then the actions (the long labels shorten there).
   return `<div class="bulk" id="bulk" hidden>
     <div class="bulk-in">
-      <span class="bulk-count"><b id="bulk-n">0</b> kijelölve</span>
+      <button class="icon bulk-close" data-bulk="clear" aria-label="Kijelölés megszüntetése" title="Mégse">✕</button>
+      <span class="bulk-count"><b id="bulk-n">0</b><span class="bulk-word"> kijelölve</span></span>
       <div class="bulk-actions">
         ${CATEGORIES.map(([value, label]) => `<button data-bulk="${value}">${label}</button>`).join('')}
-        <button data-bulk="purpose">Cél és partner…</button>
-        <button class="link" data-bulk="clear">Mégse</button>
+        <button data-bulk="purpose" aria-label="Cél és partner"><span class="long">Cél és partner…</span><span class="short" aria-hidden="true">Cél…</span></button>
       </div>
     </div>
   </div>`;
@@ -713,6 +788,25 @@ function flash(id, text, bad = false) {
 
 const saveError = (e) => (String(e?.message || '').includes('closed month') ? 'Ez a hónap le van zárva, az appban nyithatod újra.' : 'Nem sikerült menteni. Próbáld újra.');
 
+const CHANGED = 'Közben a telefonodról módosult ez az út. Frissítettük: nézd át, és ha kell, mentsd újra.';
+const GONE = 'Ezt az utat közben törölted a telefonon.';
+
+/** The phone saved this trip after the page read it: show the server's copy instead of overwriting it. */
+function serverWon(trip, row, quiet = false) {
+  if (row) {
+    Object.assign(trip, row);
+    if (quiet) return;
+    redrawTrip(trip);
+    flash(trip.id, CHANGED, true);
+  } else {
+    state.trips = state.trips.filter((t) => t.id !== trip.id);
+    if (quiet) return;
+    renderTrips();
+    toast(GONE, true);
+  }
+  refreshSide();
+}
+
 async function save(trip, patch, quiet = false) {
   try {
     const row = await state.api.update(trip, patch);
@@ -720,7 +814,8 @@ async function save(trip, patch, quiet = false) {
     remember(trip);
     return true;
   } catch (e) {
-    if (!quiet) flash(trip.id, saveError(e), true);
+    if (e?.message === 'changed') serverWon(trip, e.serverCopy, quiet);
+    else if (!quiet) flash(trip.id, saveError(e), true);
     return false;
   }
 }
@@ -742,11 +837,13 @@ function redrawTrip(trip) {
 }
 
 /**
- * Private wipes the address, purpose and partner from the server at once (the privacy policy), and
- * afterwards only the phone can file the trip as anything else. So what goes is kept in this tab
- * for a while, and one tap puts it all back. Null when it couldn't be read: then nothing changes.
+ * What a category change can be undone to. Private wipes the address, purpose and partner from the
+ * server at once (the privacy policy), and afterwards only the phone can file the trip as anything
+ * else, so all of that is kept in this tab for a while. Null when it couldn't be read: then nothing
+ * changes.
  */
-async function keepForUndo(trips) {
+async function keepForUndo(trips, category) {
+  if (category !== 'personal') return trips.map((t) => ({ id: t.id, category: t.category }));
   try {
     return await state.api.beforePrivate(trips);
   } catch {
@@ -754,13 +851,13 @@ async function keepForUndo(trips) {
   }
 }
 
-async function undoPrivate(before) {
+async function undoCategory(before) {
   app.classList.add('loading');
   const done = await each(before, ({ id, ...row }) => save(tripById(id) ?? { id }, row, true));
   app.classList.remove('loading');
   renderTrips();
   refreshSide();
-  toast(done === before.length ? 'Visszavonva.' : `${done} út visszaállítva, ${before.length - done} nem sikerült. Az appban még megvan a címük.`, done < before.length);
+  toast(done === before.length ? 'Visszavonva.' : `${done} út visszaállítva, ${before.length - done} nem sikerült. Az appban ezeket is visszaállíthatod.`, done < before.length);
 }
 
 async function setCategory(trip, category, button) {
@@ -769,8 +866,9 @@ async function setCategory(trip, category, button) {
   if (phoneOnly(trip)) return;
   const buttons = button.closest('.seg').querySelectorAll('button');
   buttons.forEach((x) => (x.disabled = true));
-  const before = category === 'personal' ? await keepForUndo([trip]) : null;
-  const ok = (category !== 'personal' || before?.length) && (await save(trip, categoryPatch(trip, category)));
+  const was = trip.category;
+  const before = await keepForUndo([trip], category);
+  const ok = !!before?.length && (await save(trip, categoryPatch(trip, category)));
   if (!ok) {
     if (!before?.length) flash(trip.id, saveError(), true);
     return buttons.forEach((x) => (x.disabled = false));
@@ -778,7 +876,9 @@ async function setCategory(trip, category, button) {
   redrawTrip(trip);
   refreshSide();
   flash(trip.id, 'Mentve');
-  if (category === 'personal') toast('Magánút lett: a címe, célja és partnere lekerült a felhőből, a telefonodon megmarad.', false, () => undoPrivate(before));
+  // A waiting trip has no button to go back to, and Magán can't be undone here later.
+  if (category === 'personal') toast('Magánút lett: a címe, célja és partnere lekerült a felhőből, a telefonodon megmarad.', false, () => undoCategory(before));
+  else if (was === 'unreviewed') toast(`${LABEL[category]} lett.`, false, () => undoCategory(before));
   if (category === 'business' && missing(trip)) document.querySelector(`#t-${CSS.escape(trip.id)} input[data-field="purpose"]`)?.focus();
 }
 
@@ -817,8 +917,8 @@ async function bulkCategory(category) {
   const stuck = category === 'personal' ? [] : picked.filter(phoneOnly);
   const todo = picked.filter((t) => t.category !== category && !stuck.includes(t));
   app.classList.add('loading');
-  const before = category === 'personal' && todo.length ? await keepForUndo(todo) : null;
-  if (category === 'personal' && todo.length && !before) {
+  const before = todo.length ? await keepForUndo(todo, category) : null;
+  if (todo.length && !before) {
     app.classList.remove('loading');
     return toast('Nem sikerült menteni. Próbáld újra.', true);
   }
@@ -832,7 +932,7 @@ async function bulkCategory(category) {
   if (done < todo.length) notes.push(`${todo.length - done} utat nem sikerült menteni, próbáld újra.`);
   if (stuck.length) notes.push(`${stuck.length} magánutat kihagytunk: azokat az appban teheted üzletivé, mert a címük csak ott van.`);
   const undo = before?.filter((row) => saved.includes(row.id));
-  toast(notes.join(' '), done < todo.length, undo?.length ? () => undoPrivate(undo) : null);
+  toast(notes.join(' '), done < todo.length, undo?.length ? () => undoCategory(undo) : null);
 }
 
 /* ---------- Dialogs ---------- */
@@ -856,6 +956,9 @@ function dialog(title, body, submitLabel, onSubmit) {
     e.preventDefault();
     const submit = form.querySelector('[type="submit"]');
     submit.disabled = true;
+    // The last attempt's error goes while this one runs.
+    error.textContent = '';
+    error.classList.add('hidden');
     const problem = await onSubmit(form);
     submit.disabled = false;
     if (problem) {
@@ -903,6 +1006,10 @@ function editDialog(trip) {
       // The times stay; only a new km can make the trip impossible.
       const tooQuick = speedProblem({ ...trip, distance_m: meters });
       if (tooQuick) return tooQuick;
+      if (tooShort({ ...trip, distance_m: meters })) {
+        const direct = straightLineM({ lat: trip.start_lat, lng: trip.start_lng }, { lat: trip.end_lat, lng: trip.end_lng });
+        return `Az út két vége között légvonalban ${comma(Math.round(direct / 100) / 10)} km van, ennél kevesebb nem lehet. Ellenőrizd a km-t.`;
+      }
       Object.assign(patch, { distance_m: meters, distance_source: 'manual', gps_distance_m: trip.gps_distance_m ?? trip.distance_m });
     }
     if (business) {
@@ -914,7 +1021,11 @@ function editDialog(trip) {
       Object.assign(trip, await state.api.update(trip, patch));
       remember(trip);
     } catch (e) {
-      return saveError(e);
+      if (e?.message !== 'changed') return saveError(e);
+      serverWon(trip, e.serverCopy, true);
+      redrawTrip(trip);
+      refreshSide();
+      return e.serverCopy ? CHANGED : GONE;
     }
     redrawTrip(trip);
     refreshSide();
@@ -946,10 +1057,12 @@ function bulkPurposeDialog() {
 function addDialog(go) {
   const now = new Date();
   const day = state.month === ym(now) ? ymd(now) : `${state.month}-01`;
-  const radios = CATEGORIES.map(([value, label]) => `<label class="seg-radio"><input type="radio" name="category" value="${value}"${value === 'business' ? ' checked' : ''}><span>${label}</span></label>`).join('');
+  // Last year stays open for a late December or a retroactive log; anything older is a typo.
+  const firstDay = `${now.getFullYear() - 1}-01-01`;
+  const radios =CATEGORIES.map(([value, label]) => `<label class="seg-radio"><input type="radio" name="category" value="${value}"${value === 'business' ? ' checked' : ''}><span>${label}</span></label>`).join('');
   const body = `
     <div class="dl-row three">
-      ${field('day', 'Nap', day, `type="date" max="${ymd(now)}" required`)}
+      ${field('day', 'Nap', day, `type="date" min="${firstDay}" max="${ymd(now)}" required`)}
       ${field('start', 'Indulás', '', 'type="time" required')}
       ${field('end', 'Érkezés', '', 'type="time" required')}
     </div>
@@ -968,6 +1081,7 @@ function addDialog(go) {
     const { startedAt, endedAt, wrapped } = timesOf(form);
     const kmValue = parseKm(v('km'));
     if (!v('day') || !v('start') || !v('end') || isNaN(startedAt) || isNaN(endedAt)) return 'Add meg a napot, az indulást és az érkezést.';
+    if (v('day') < firstDay) return `Utat ${now.getFullYear() - 1}. január 1-jétől vehetsz fel.`;
     if (endedAt <= startedAt) return 'Az érkezés legyen később, mint az indulás.';
     if (wrapped && endedAt - startedAt > MAX_TRIP_MS) return 'Az érkezés korábbi, mint az indulás. Ha éjfél után érkeztél, az út legfeljebb 14 óra lehet.';
     if (endedAt > new Date()) return 'Jövőbeli utat nem lehet felvenni.';

@@ -75,6 +75,28 @@ export function logConflicts(trips) {
     }
     return { overlap, speed: drives.filter(tooFast).map((t) => t.id) };
 }
+/** A trip this far from where the last one ended means a drive is missing. */
+export const JUMP_M = 3000;
+/** GPS endpoints wander, so a road distance only "beats" the straight line by this much. */
+const STRAIGHT_LINE_SLACK = 0.9;
+const point = (lat, lng) => (lat != null && lng != null ? { lat, lng } : null);
+export function straightLineM(a, b) {
+    if (!a || !b)
+        return null;
+    const rad = Math.PI / 180;
+    const h = Math.sin(((b.lat - a.lat) * rad) / 2) ** 2 + Math.cos(a.lat * rad) * Math.cos(b.lat * rad) * Math.sin(((b.lng - a.lng) * rad) / 2) ** 2;
+    return 2 * 6371000 * Math.asin(Math.min(1, Math.sqrt(h)));
+}
+/** The km are shorter than the straight line between the two ends: the km are wrong. */
+export function tooShort(t) {
+    const direct = straightLineM(point(t.start_lat, t.start_lng), point(t.end_lat, t.end_lng));
+    return direct !== null && t.distance_m < direct * STRAIGHT_LINE_SLACK;
+}
+/** Drives that start far from where the one before ended: a trip may be missing in between. */
+export function jumps(trips) {
+    const drives = trips.filter(isDrive).sort(byStart);
+    return drives.slice(1).filter((t, i) => (straightLineM(point(drives[i].end_lat, drives[i].end_lng), point(t.start_lat, t.start_lng)) ?? 0) > JUMP_M).map((t) => t.id);
+}
 /** Why the month can't be closed yet, or null. */
 export function closeBlocker(trips) {
     if (!trips.length)

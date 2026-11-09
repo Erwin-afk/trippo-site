@@ -224,10 +224,15 @@ export function setupLogin({ send, verify, done }) {
   form.addEventListener('submit', async (ev) => {
     ev.preventDefault();
     const button = form.querySelector('button');
+    // A slow network must not look frozen.
+    const label = button.textContent;
     button.disabled = true;
+    button.textContent = 'Küldés…';
+    clearError();
     email = emailInput.value.trim().toLowerCase();
     const err = await send(email);
     button.disabled = false;
+    button.textContent = label;
     if (err) return fail(err);
     showCode();
   });

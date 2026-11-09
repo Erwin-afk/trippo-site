@@ -116,9 +116,11 @@ input.pick { width: 20px; height: 20px; margin: 0; padding: 0; accent-color: var
 
 /* Many at once: the bar sits at the bottom while trips are picked. */
 .bulk { position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; padding: 10px 16px calc(10px + env(safe-area-inset-bottom)); background: color-mix(in srgb, var(--card) 92%, transparent); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border-top: 1px solid var(--line); box-shadow: 0 -6px 24px rgba(0, 0, 0, .08); }
-.bulk-in { max-width: 1080px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
-.bulk-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+.bulk-in { max-width: 1080px; margin: 0 auto; display: flex; align-items: center; gap: 10px; }
+.bulk-close { flex: none; }
+.bulk-actions { display: flex; gap: 6px; flex-wrap: wrap; margin-left: auto; }
 .bulk-actions button { padding: 9px 12px; font-size: 14px; }
+.bulk-actions .short { display: none; }
 body.has-bulk main { padding-bottom: 120px; }
 /* Centred with margins: #app's entrance animation owns `transform`. */
 .toast { position: fixed; left: 16px; right: 16px; margin: 0 auto; bottom: 24px; z-index: 40; width: max-content; max-width: min(560px, calc(100% - 32px)); box-sizing: border-box; background: var(--text); color: var(--bg); padding: 12px 16px; border-radius: 14px; font-size: 14px; box-shadow: 0 8px 30px rgba(0, 0, 0, .2); }
@@ -164,9 +166,14 @@ body.has-bulk .toast { bottom: 96px; }
   .seg button { flex: 1; padding: 10px 6px; min-height: 44px; }
   .tools .filter { flex-wrap: wrap; }
   .tools #add-trip { width: 100%; }
-  .bulk-in { justify-content: center; }
-  .bulk-actions { width: 100%; }
-  .bulk-actions button { flex: 1; padding: 10px 6px; min-height: 44px; }
+  /* One row: ✕, the number, four buttons. "kijelölve" stays for screen readers only. */
+  .bulk { padding: 8px 12px calc(8px + env(safe-area-inset-bottom)); }
+  .bulk-in { gap: 8px; }
+  .bulk-word { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  .bulk-actions { flex: 1; flex-wrap: nowrap; margin-left: 0; }
+  .bulk-actions button { flex: 1 1 auto; padding: 10px 4px; min-height: 44px; }
+  .bulk-actions .long { display: none; }
+  .bulk-actions .short { display: inline; }
   .dl-row, .dl-row.three { grid-template-columns: 1fr 1fr; }
   .dl-row.three > :first-child { grid-column: 1 / -1; }
   .sheet-dialog { margin: auto auto 0; width: 100%; max-width: 100%; border-radius: 20px 20px 0 0; }

@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Trippo: útnyilvántartó app saját és céges autóhoz</title>
-<meta name="description" content="A Trippo útnyilvántartó app iPhone-ra: magától rögzíti az utaidat, hónap végén pedig kész a NAV-szabályok szerinti útnyilvántartás és kiküldetési rendelvény PDF-ben és Excelben.">
+<meta name="description" content="A Trippo útnyilvántartó app iPhone-ra magától rögzíti az utaidat. Hónap végén kész a NAV-szabályok szerinti útnyilvántartás és kiküldetési rendelvény.">
 <link rel="canonical" href="https://trippo.hu/">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Trippo">
@@ -96,12 +96,15 @@
         <div class="saver-scale" aria-hidden="true"><span>100 km</span><span>3 000 km</span></div>
         <label class="saver-label" for="saver-car">Az autód</label>
         <select id="saver-car">
+          <option value="76:p">Benzin, 1000 cm³-ig</option>
           <option value="86:p">Benzin, 1001–1500 cm³</option>
           <option value="95:p" selected>Benzin, 1501–2000 cm³</option>
           <option value="114:p">Benzin, 2001–3000 cm³</option>
+          <option value="133:p">Benzin, 3000 cm³ fölött</option>
           <option value="57:d">Dízel, 1500 cm³-ig</option>
           <option value="67:d">Dízel, 1501–2000 cm³</option>
           <option value="76:d">Dízel, 2001–3000 cm³</option>
+          <option value="95:d">Dízel, 3000 cm³ fölött</option>
         </select>
       </div>
       <div class="saver-result" aria-live="polite">
