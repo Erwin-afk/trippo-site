@@ -190,11 +190,20 @@ const real = {
  * A phone with its own unsynced change to a trip wins over this page (last write wins). So every
  * save here is noted in this browser, and when the trip later comes back different, its card says
  * why. Only a convenience: without storage nothing breaks.
+ * Privacy (adatvedelem.html#sutik): the note holds the trip's id, the save time and a fingerprint of
+ * each saved field, never the address, purpose or partner itself; it lasts 14 days at most and
+ * Kilépés deletes it.
  */
 const webEdits = (() => {
   const KEY = 'trippo-web-edits';
   const KEEP_MS = 14 * 86_400_000;
   const FIELDS = ['category', 'start_address', 'end_address', 'distance_m', 'purpose', 'partner_name'];
+  /** FNV-1a: enough to tell "changed" from "same", and it can't be read back. */
+  const sum = (v) => {
+    let h = 0x811c9dc5;
+    for (const c of String(v ?? '')) h = Math.imul(h ^ c.codePointAt(0), 0x01000193) >>> 0;
+    return h.toString(36);
+  };
   const read = () => {
     try {
       return JSON.parse(localStorage.getItem(KEY) || '{}');
@@ -211,9 +220,14 @@ const webEdits = (() => {
     saved(row, patch) {
       if (!row?.updated_at) return;
       const all = read();
-      const fields = Object.fromEntries(FIELDS.filter((k) => k in patch).map((k) => [k, row[k] ?? null]));
-      all[row.id] = { at: row.updated_at, on: Date.now(), fields: { ...(all[row.id]?.fields ?? {}), ...fields } };
+      const sums = Object.fromEntries(FIELDS.filter((k) => k in patch).map((k) => [k, sum(row[k])]));
+      all[row.id] = { at: row.updated_at, on: Date.now(), sums: { ...(all[row.id]?.sums ?? {}), ...sums } };
       write(all);
+    },
+    clear() {
+      try {
+        localStorage.removeItem(KEY);
+      } catch {}
     },
     /** Trips saved here that have changed since, and differ from what was saved. */
     overwritten(trips) {
@@ -222,7 +236,7 @@ const webEdits = (() => {
       for (const t of trips) {
         const mine = all[t.id];
         if (!mine || !t.updated_at || t.updated_at <= mine.at) continue;
-        if (Object.entries(mine.fields).some(([k, v]) => (t[k] ?? null) !== v)) found.add(t.id);
+        if (Object.entries(mine.sums ?? {}).some(([k, v]) => sum(t[k]) !== v)) found.add(t.id);
         delete all[t.id];
       }
       for (const [id, e] of Object.entries(all)) if (Date.now() - e.on > KEEP_MS) delete all[id];
@@ -467,6 +481,8 @@ function whoBar(email) {
     ? '<span>Minta, belépés nélkül</span><a class="button" href="#">Belépés</a>'
     : `<span>${esc(email)}</span><button id="logout" class="link">Kilépés</button>`;
   on('#logout', 'click', async () => {
+    // Nothing of this account stays in the browser after Kilépés.
+    webEdits.clear();
     await sb.auth.signOut();
     route();
   });
