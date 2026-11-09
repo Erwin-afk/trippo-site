@@ -1180,7 +1180,7 @@ function loginView() {
         </form>
         <div id="code-step" class="stack code-step hidden"></div>
         <p class="error hidden" id="login-error"></p>
-        <p class="muted small">A belépéssel hozzájárulsz, hogy a böngésződ a kilépésig megőrizze a belépésedet. <a href="adatvedelem.html#sutik">Részletek</a></p>
+        <p class="muted small">A belépéssel hozzájárulsz, hogy a böngésződ a kilépésig megőrizze a belépésedet. <a href="adatvedelem#sutik">Részletek</a></p>
       </div>
     </section>
     <section class="block">

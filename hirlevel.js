@@ -22,8 +22,8 @@ const done = (text, link) => {
   button.classList.add('hidden');
 };
 // Whoever can't use the link can still get off the list by writing to us.
-const support = { href: 'tamogatas.html', text: 'Írj nekünk, és leiratkoztatunk' };
-const signUp = { href: 'index.html#hirlevel', text: 'Iratkozz fel újra a kezdőlapon' };
+const support = { href: 'tamogatas', text: 'Írj nekünk, és leiratkoztatunk' };
+const signUp = { href: '/#hirlevel', text: 'Iratkozz fel újra a kezdőlapon' };
 
 if (leaving) {
   title.textContent = 'Leiratkozás a hírlevélről';

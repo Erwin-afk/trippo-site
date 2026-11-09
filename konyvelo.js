@@ -158,7 +158,7 @@ function loginForm(title, text) {
     </form>
     <div id="code-step" class="stack code-step hidden"></div>
     <p class="error hidden" id="login-error"></p>
-    <p class="muted">A belépéssel elfogadod a <a href="aszf.html#konyvelo">feltételeket</a>, és hozzájárulsz, hogy a böngésződ a kilépésig megőrizze a belépésedet. <a href="adatvedelem.html#sutik">Részletek</a></p>
+    <p class="muted">A belépéssel elfogadod a <a href="aszf#konyvelo">feltételeket</a>, és hozzájárulsz, hogy a böngésződ a kilépésig megőrizze a belépésedet. <a href="adatvedelem#sutik">Részletek</a></p>
   </div>`;
 }
 
@@ -190,8 +190,8 @@ function loginView() {
     <figure class="preview">
       <div class="preview-bar"><i></i><i></i><i></i></div>
       <picture>
-        <source srcset="images/portal-dark.jpg" media="(prefers-color-scheme: dark)">
-        <img src="images/portal-light.jpg" width="2160" height="1096" alt="A könyvelői portál ügyféllistája: ki zárta le a múlt hónapot, és kire kell még várni">
+        <source srcset="images/portal-dark.webp" media="(prefers-color-scheme: dark)">
+        <img src="images/portal-light.webp" width="2160" height="1096" alt="A könyvelői portál ügyféllistája: ki zárta le a múlt hónapot, és kire kell még várni">
       </picture>
     </figure>
     <section class="block">
