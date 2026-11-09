@@ -3,13 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Fogyasztási norma táblázat 2026 hengerűrtartalom szerint</title>
+<title>Fogyasztási norma 2026: táblázat és kalkulátor</title>
 <meta name="description" content="Hány liter számolható el 100 km-re? A 60/1992. Korm. rendelet normái hengerűrtartalom szerint, benzinre és dízelre, LPG-re, hibridre és villanyautóra.">
 <link rel="canonical" href="https://trippo.hu/fogyasztasi-norma">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Trippo">
 <meta property="og:locale" content="hu_HU">
-<meta property="og:title" content="Fogyasztási norma táblázat 2026: liter/100 km hengerűrtartalom szerint">
+<meta property="og:title" content="Fogyasztási norma 2026: táblázat és kalkulátor">
 <meta property="og:description" content="A 60/1992. Korm. rendelet fogyasztási normái benzines és dízel autóra, hengerűrtartalom szerint. LPG, tölthető hibrid és elektromos autó szabályai példákkal.">
 <meta property="og:url" content="https://trippo.hu/fogyasztasi-norma">
 <meta property="og:image" content="https://trippo.hu/images/og.jpg">
@@ -18,7 +18,8 @@
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="favicon.png">
 <link rel="stylesheet" href="style.css">
-<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Article","headline":"Fogyasztási norma táblázat 2026: liter/100 km hengerűrtartalom szerint","description":"A 60/1992. Korm. rendelet fogyasztási normái benzines és dízel autóra, hengerűrtartalom szerint. LPG, tölthető hibrid és elektromos autó szabályai példákkal.","inLanguage":"hu","image":"https://trippo.hu/images/og.jpg","datePublished":"2026-11-03","dateModified":"2026-11-02","author":{"@type":"Organization","name":"Trippo","url":"https://trippo.hu"},"publisher":{"@type":"Organization","name":"Trippo","url":"https://trippo.hu"},"mainEntityOfPage":"https://trippo.hu/fogyasztasi-norma"},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Trippo","item":"https://trippo.hu/"},{"@type":"ListItem","position":2,"name":"Fogyasztási norma táblázat","item":"https://trippo.hu/fogyasztasi-norma"}]}]}</script>
+<link rel="stylesheet" href="kalkulator.css">
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Article","headline":"Fogyasztási norma 2026: táblázat és kalkulátor","description":"A 60/1992. Korm. rendelet fogyasztási normái benzines és dízel autóra, hengerűrtartalom szerint. LPG, tölthető hibrid és elektromos autó szabályai példákkal.","inLanguage":"hu","image":"https://trippo.hu/images/og.jpg","datePublished":"2026-11-03","dateModified":"2026-11-10","author":{"@type":"Organization","name":"Trippo","url":"https://trippo.hu"},"publisher":{"@type":"Organization","name":"Trippo","url":"https://trippo.hu"},"mainEntityOfPage":"https://trippo.hu/fogyasztasi-norma"},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Trippo","item":"https://trippo.hu/"},{"@type":"ListItem","position":2,"name":"Fogyasztási norma táblázat","item":"https://trippo.hu/fogyasztasi-norma"}]}]}</script>
 </head>
 <body>
 <header class="bar">
@@ -52,6 +53,25 @@
 <tr><td>3000 cm³ fölött</td><td>13,3</td><td>9,5</td></tr>
 </table>
 <p>A hengerűrtartalmat a forgalmi engedélyben találod. Forrás: <a href="https://nav.gov.hu/ugyfeliranytu/uzemanyag/gjnorma">NAV, gépjármű-fogyasztási normák</a>.</p>
+<h2 id="kalkulator">Norma kalkulátor</h2>
+<p>Válaszd ki az üzemanyagot, és írd be a hengerűrtartalmat a forgalmi engedélyből.</p>
+<form class="calc-form" id="norm-form">
+  <label>Üzemanyag<select id="norm-fuel">
+    <option value="petrol">Benzin</option>
+    <option value="diesel">Dízel</option>
+    <option value="lpg">LPG</option>
+    <option value="cng">CNG, LNG</option>
+    <option value="plugin_petrol">Tölthető hibrid, benzinmotor</option>
+    <option value="plugin_diesel">Tölthető hibrid, dízelmotor</option>
+    <option value="electric">Tisztán elektromos</option>
+  </select></label>
+  <label>Hengerűrtartalom (cm³)<input id="norm-ccm" inputmode="numeric" value="1598" aria-describedby="norm-error"><small class="calc-error" id="norm-error" aria-live="polite"></small></label>
+</form>
+<div class="calc-result" aria-live="polite">
+  <div class="sum"><span>Norma</span><b id="norm-result"></b></div>
+  <div><span>Számítás</span><b id="norm-how" class="norm-how"></b></div>
+</div>
+<p>Mennyit ér ez forintban? Számold ki a <a href="kalkulator">km-elszámolás kalkulátorral</a>.</p>
 <h2>LPG és földgáz</h2>
 <p>Gázüzemű autónál a benzines normából indulsz ki, és megszorzod:</p>
 <ul>
@@ -86,5 +106,6 @@
 <p class="muted">Ez az oldal általános tájékoztató, nem adótanácsadás. A saját esetedről kérdezd a könyvelődet. Utolsó frissítés: 2026. november.</p>
 <nav class="links"><a href="utnyilvantartas">Útnyilvántartás saját autóhoz</a><a href="km-elszamolas">Km-elszámolás</a><a href="kalkulator">Kalkulátorok</a><a href="/">Kezdőlap</a><a href="impresszum">Impresszum</a></nav>
 </main>
+<script src="norma.js"></script>
 </body>
 </html>

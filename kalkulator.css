@@ -11,6 +11,8 @@
 .calc-result div:last-child { border-bottom: 0; }
 .calc-result span { color: var(--muted); }
 .calc-result b { white-space: nowrap; font-variant-numeric: tabular-nums; }
+/* The norm calculator's "how it was counted" line is text, not a number: it may wrap. */
+.calc-result b.norm-how { white-space: normal; text-align: right; font-weight: 600; }
 .calc-result .sum span { color: var(--text); font-weight: 700; }
 .calc-result .sum b { font-size: 20px; }
 @media (max-width: 520px) { .calc-form { grid-template-columns: 1fr; } }
