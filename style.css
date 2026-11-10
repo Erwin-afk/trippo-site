@@ -285,3 +285,7 @@ main.doc { animation: fade .35s ease both; }
   .swipe-hint { display: block; }
   .compare th, .compare td { padding: 12px 10px; }
 }
+/* Landing pages: full-width sections like the homepage; related guides two across, one on phones. */
+main.landing { max-width: none; padding: 0; }
+.section .guides.related { grid-template-columns: repeat(2, 1fr); max-width: 760px; }
+@media (max-width: 820px) { .section .guides.related { grid-template-columns: 1fr; } }
