@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="hu">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src https://rudnmzhfgnynlmjdrwoy.supabase.co; base-uri 'none'; form-action 'none'">
+<title>Meghívó a könyvelődtől | Trippo</title>
+<meta name="description" content="A könyvelőd meghívott a Trippóba: töltsd le az appot, és írd be a kódot. A lezárt hónapjaidat csak a jóváhagyásod után látja.">
+<link rel="icon" href="/favicon.png">
+<link rel="stylesheet" href="/style.css">
+<link rel="stylesheet" href="/meghivo.css">
+</head>
+<body>
+<header class="bar">
+  <div class="bar-in">
+    <a class="brand" href="/"><span class="logo"></span><span>Trippo</span></a>
+  </div>
+</header>
+<main class="doc invite">
+  <p class="eyebrow">Meghívó</p>
+  <h1 id="title">Meghívó a könyvelődtől</h1>
+  <p class="lead" id="lead">A Trippo magától vezeti az útnyilvántartásodat. A lezárt hónapjaidat a könyvelőd a saját felületén látja, így nem kell többé fájlokat küldened neki.</p>
+  <p class="notice-bad hidden" id="bad">Ez a meghívó nem érvényes. Lehet, hogy a könyvelőd közben új kódot készített: kérd el tőle az újat.</p>
+
+  <ol class="invite-steps">
+    <li>
+      <b>Töltsd le a Trippót</b>
+      <a class="btn store" href="https://apps.apple.com/hu/app/id6825511759">Letöltés az App Store-ból</a>
+    </li>
+    <li id="code-step">
+      <b>Írd be ezt a kódot az appban</b>
+      <span class="muted-line">Beállítások › Könyvelői hozzáférés › Kódom van a könyvelőmtől</span>
+      <span class="code-box hidden" id="code-box">
+        <span class="code" id="code" aria-label="Meghívókód"></span>
+        <button type="button" class="copy" id="copy">Másolás</button>
+      </span>
+      <span class="muted-line hidden" id="no-code">A kódot a könyvelődtől kapod: papíron, e-mailben vagy egy ilyen linkben.</span>
+    </li>
+    <li>
+      <b>Fogadd el, ha rendben van</b>
+      <span class="muted-line">Az app megmutatja, melyik iroda kéri, és pontosan mit lát. Amíg nem fogadod el, semmit nem osztunk meg.</span>
+    </li>
+  </ol>
+  <p class="hidden" id="open-wrap"><a class="open-app" id="open-app" href="/">Már megvan az app? Megnyitás a Trippóban</a></p>
+
+  <div class="card sees">
+    <h2>Mit lát a könyvelőd?</h2>
+    <ul>
+      <li>Csak a lezárt hónapjaidat: üzleti utak, km-óra, összegek, rendszám és a neved.</li>
+      <li>Le nem zárt hónapot nem lát, a magánutaidból csak a km-t.</li>
+      <li>Csak nézni és letölteni tudja, módosítani nem.</li>
+      <li>Az appban bármikor visszavonhatod.</li>
+    </ul>
+  </div>
+  <nav class="links"><a href="/">Kezdőlap</a><a href="/adatvedelem">Adatkezelési tájékoztató</a><a href="/tamogatas">Támogatás</a><a href="/impresszum">Impresszum</a></nav>
+</main>
+<script type="module" src="/meghivo.js"></script>
+</body>
+</html>

@@ -3,11 +3,14 @@
  *   #<64 hex>   a client's link (read-only; a logged-in accountant can add it to their clients)
  *   (empty)     login, or the client list
  *   #c/<id>     one client
+ *   #meghivo    the accountant's invite: link, QR code and code for clients, office name, on/off
  *   #demo…      the same screens with made-up data, no login
  * Everything from the server goes through esc(): this page holds a login, and trip purposes,
  * partners and names are typed by clients.
  */
+import { formatInviteCode, inviteUrl } from './invite-code.js';
 import { setupLogin } from './otp.js';
+import { toQR } from './vendor/toqr-0.1.1.js';
 import { XLSX_MIME, clientsWorkbook, isShareLog, monthWorkbook, payableOf, yearWorkbook } from './workbook.js';
 
 const BASE = 'https://rudnmzhfgnynlmjdrwoy.supabase.co';
@@ -206,9 +209,9 @@ function loginView() {
     <section class="block">
       <h2>Így kerül hozzád egy ügyfél</h2>
       <ol class="path">
-        <li><b>Linket küld</b><span>Az ügyfeled a Trippo appban létrehoz egy könyvelői linket.</span></li>
-        <li><b>Megnyitod</b><span>Regisztráció nélkül is látod a lezárt hónapjait.</span></li>
-        <li><b>Felveszed</b><span>Egy kattintással az ügyfeleid közé kerül, és a link ezután csak neked működik.</span></li>
+        <li><b>Meghívod</b><span>Belépés után kapsz egy saját meghívó linket és QR-kódot. Add oda papíron, e-mailben, vagy diktáld le a kódot.</span></li>
+        <li><b>Elfogadja</b><span>Az ügyfeled beírja a kódot a Trippo appban. Az app megmutatja neki, mit látsz, és csak az ő jóváhagyásával oszt meg bármit.</span></li>
+        <li><b>Megjelenik nálad</b><span>Azonnal az ügyfeleid között van, a lezárt hónapjaival együtt. Ha az ügyfeled küld linket, azt is felveheted.</span></li>
       </ol>
     </section>`);
   bindLogin();
@@ -230,7 +233,11 @@ function dashboardView(clients, demo) {
   let filter = 'all';
 
   show(`${demo ? '<div class="notice"><p>Ez egy minta, kitalált adatokkal.</p><a class="button" href="#">Belépés</a></div>' : ''}
-    <div class="head"><h1>Ügyfelek</h1>${clients.length ? `<div class="actions"><button class="primary" id="month-xlsx">${esc(monthShort(wanted))}: minden ügyfél Excelben</button></div>` : ''}</div>
+    <div class="head"><h1>Ügyfelek</h1>${
+      clients.length
+        ? `<div class="actions"><a class="button" href="${demo ? '#demo/meghivo' : '#meghivo'}">Ügyfél meghívása</a><button class="primary" id="month-xlsx">${esc(monthShort(wanted))}: minden ügyfél Excelben</button></div>`
+        : ''
+    }</div>
     ${
       clients.length
         ? `<div class="stats">
@@ -251,12 +258,9 @@ function dashboardView(clients, demo) {
           </table></div>`
         : `<div class="card empty">
             <h2>Még nincs ügyfeled</h2>
-            <p class="muted">Így adhatsz hozzá ügyfelet:</p>
-            <ol class="steps">
-              <li>Az ügyfeled a Trippo appban: Beállítások › Könyvelői hozzáférés › Link létrehozása.</li>
-              <li>Elküldi neked a linket.</li>
-              <li>Megnyitod, és rákattintasz: Hozzáadás az ügyfeleimhez.</li>
-            </ol>
+            <p class="muted">Hívd meg őket egy linkkel vagy QR-kóddal: az ügyfeled beírja a kódot a Trippo appban, jóváhagyja, és már itt is van.</p>
+            <a class="button primary" href="#meghivo">Meghívó link és QR-kód</a>
+            <p class="muted">Ha az ügyfeled küld neked linket a Trippo appból, nyisd meg, és kattints rá: Hozzáadás az ügyfeleimhez.</p>
           </div>`
     }`);
   if (!clients.length) return;
@@ -447,6 +451,197 @@ async function linkView(token) {
   });
 }
 
+/* ---------- The accountant's invite ---------- */
+
+const QUIET = 4;
+
+/** Dark modules of the QR code for the text (error correction M: still reads when printed small or creased). */
+function qrModules(text) {
+  const bits = toQR(text, 0);
+  return { bits, size: Math.round(Math.sqrt(bits.length)) };
+}
+
+function qrSvg(text) {
+  const { bits, size } = qrModules(text);
+  let d = '';
+  for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) if (bits[y * size + x]) d += `M${x + QUIET} ${y + QUIET}h1v1h-1z`;
+  const full = size + QUIET * 2;
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${full} ${full}" shape-rendering="crispEdges" role="img" aria-label="QR-kód: ${esc(text)}"><rect width="${full}" height="${full}" fill="#fff"/><path d="${d}" fill="#000"/></svg>`;
+}
+
+/** A PNG of the QR code, for Word, a newsletter or the office door. */
+function qrPng(text, name) {
+  const { bits, size } = qrModules(text);
+  const full = size + QUIET * 2;
+  const scale = Math.ceil(1200 / full);
+  const canvas = document.createElement('canvas');
+  canvas.width = canvas.height = full * scale;
+  const g = canvas.getContext('2d');
+  g.fillStyle = '#fff';
+  g.fillRect(0, 0, canvas.width, canvas.height);
+  g.fillStyle = '#000';
+  for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) if (bits[y * size + x]) g.fillRect((x + QUIET) * scale, (y + QUIET) * scale, scale, scale);
+  canvas.toBlob((blob) => {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = name + '.png';
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }, 'image/png');
+}
+
+/** The accountant writes to their own clients, so the text is formal; they can change it before sending. */
+function inviteMail(invite) {
+  const code = formatInviteCode(invite.code);
+  return `Tisztelt Ügyfelünk!
+
+Az útnyilvántartását ezentúl a Trippo appal is vezetheti: az app magától rögzíti az utakat, a lezárt hónapokat pedig mi közvetlenül látjuk, így nem kell fájlokat küldenie.
+
+1. Töltse le a Trippót az App Store-ból.
+2. Az appban válassza: Beállítások › Könyvelői hozzáférés › Kódom van a könyvelőmtől, és írja be ezt a kódot: ${code}
+
+A telefonján ezt a linket is megnyithatja: ${inviteUrl(invite.code)}
+
+Az app megmutatja, mit látunk: csak a lezárt hónapokat, módosítani nem tudjuk őket. Semmit nem oszt meg az Ön jóváhagyása nélkül, és a hozzáférést bármikor visszavonhatja.
+
+Üdvözlettel:
+${invite.office}`;
+}
+
+async function copyText(button, text) {
+  const label = button.textContent;
+  try {
+    await navigator.clipboard.writeText(text);
+    button.textContent = 'Kimásolva';
+  } catch {
+    button.textContent = 'Nem sikerült, jelöld ki kézzel';
+  }
+  setTimeout(() => (button.textContent = label), 2000);
+}
+
+const INVITE_ERRORS = {
+  bad_office: 'Írd be az iroda nevét (legalább 2 karakter).',
+  too_many: 'Ma már sokszor módosítottad a meghívót. Próbáld újra holnap.',
+};
+
+/** Runs a change on the invite, then shows the result (or what went wrong) on the same screen. */
+async function inviteChange(button, body) {
+  button.disabled = true;
+  try {
+    const { invite } = await call(body);
+    inviteView(invite);
+  } catch (e) {
+    button.disabled = false;
+    const box = document.getElementById('invite-error');
+    box.textContent = INVITE_ERRORS[e.message] || 'Nem sikerült menteni. Próbáld újra.';
+    box.classList.remove('hidden');
+  }
+}
+
+function inviteSetup() {
+  show(`<a class="back" href="#">‹ Ügyfelek</a>
+    <div class="head"><h1>Meghívó az ügyfeleidnek</h1></div>
+    <div class="card invite-setup">
+      <p>Kapsz egy saját linket és QR-kódot. Az ügyfeled az appban beírja a kódot, és ha jóváhagyja, megjelenik az ügyfeleid között. Mielőtt jóváhagyja, az app megmutatja neki az iroda nevét és a belépési e-mail-címedet.</p>
+      <form id="office-form" class="stack">
+        <div><label for="office">Az iroda neve (ezt látják az ügyfeleid)</label><input id="office" maxlength="80" autocomplete="organization" placeholder="pl. Minta Könyvelőiroda Kft." required></div>
+        <button class="primary" type="submit">Meghívó készítése</button>
+      </form>
+      <p class="error hidden" id="invite-error"></p>
+    </div>`);
+  on('#office-form', 'submit', (ev) => {
+    ev.preventDefault();
+    inviteChange(ev.target.querySelector('button'), { action: 'invite-save', office: document.getElementById('office').value });
+  });
+}
+
+/** In the demo: a made-up office and code, the settings swapped for a way to get your own. */
+const DEMO_INVITE = { code: 'DEM0K0D123', office: 'Minta Könyvelőiroda Kft.', enabled: true };
+
+function inviteView(invite, demo = false) {
+  if (!invite) return inviteSetup();
+  const url = inviteUrl(invite.code);
+  const code = formatInviteCode(invite.code);
+  const file = `trippo-meghivo-${code}`;
+  const settings = demo
+    ? `<div class="card">
+        <h2>Ez egy minta</h2>
+        <p class="muted">Belépés után a saját irodád nevével és saját kóddal kapod meg. A kódot bármikor kikapcsolhatod, vagy újat készíthetsz helyette.</p>
+        <a class="button primary" href="#">Belépés</a>
+      </div>`
+    : `<div class="card">
+        <h2>Beállítások</h2>
+        <form id="office-form" class="stack">
+          <div><label for="office">Az iroda neve (ezt látják az ügyfeleid)</label><input id="office" maxlength="80" autocomplete="organization" value="${esc(invite.office)}" required></div>
+          <div><button type="submit">Név mentése</button></div>
+        </form>
+        <div class="setting">
+          <div><b>${invite.enabled ? 'A meghívó működik' : 'A meghívó ki van kapcsolva'}</b><span class="sub">${invite.enabled ? 'Bárki csatlakozhat vele, akinek odaadod.' : 'A kód és a link most nem működik.'}</span></div>
+          <button id="toggle">${invite.enabled ? 'Kikapcsolás' : 'Bekapcsolás'}</button>
+        </div>
+        <div class="setting">
+          <div><b>Új kód</b><span class="sub">A mostani kód és link azonnal megszűnik. Akik már csatlakoztak, maradnak.</span></div>
+          <button id="rotate" class="danger">Új kód készítése</button>
+        </div>
+        <p class="error hidden" id="invite-error"></p>
+      </div>`;
+  show(`${demo ? '<div class="notice"><p>Ez egy minta, kitalált irodával és kóddal.</p><a class="button" href="#">Belépés</a></div>' : ''}
+    <a class="back" href="${demo ? '#demo' : '#'}">‹ Ügyfelek</a>
+    <div class="head"><h1>Meghívó az ügyfeleidnek</h1><div class="actions"><button id="print">Nyomtatás / PDF</button></div></div>
+    ${invite.enabled ? '' : '<div class="notice warn"><p><b>A meghívó ki van kapcsolva.</b> Új ügyfél most nem tud csatlakozni vele; akik már csatlakoztak, maradnak.</p></div>'}
+    <div class="invite-grid">
+      <div class="card qr-card">
+        <div class="qr">${qrSvg(url)}</div>
+        <p class="invite-code">${esc(code)}</p>
+        <p class="invite-url">${esc(url)}</p>
+        <div class="actions">
+          <button class="primary" id="copy-link">Link másolása</button>
+          <button id="copy-code">Kód másolása</button>
+          <button id="png">QR-kód letöltése</button>
+        </div>
+      </div>
+      <div class="card">
+        <h2>Így használd</h2>
+        <ol class="steps">
+          <li>Add oda a linket vagy a QR-kódot az ügyfeleidnek: papíron, e-mailben, vagy diktáld le a kódot telefonon.</li>
+          <li>Az ügyfeled letölti a Trippót, és az appban beírja a kódot: Beállítások › Könyvelői hozzáférés › Kódom van a könyvelőmtől.</li>
+          <li>Az app megmutatja neki: <b>${esc(invite.office)}</b> és a belépési e-mail-címed, valamint hogy csak a lezárt hónapokat látod, módosítani nem tudod. Ha jóváhagyja, megjelenik az ügyfeleid között.</li>
+        </ol>
+        <label for="mail">Levélszöveg az ügyfeleidnek</label>
+        <textarea id="mail" rows="9" readonly>${esc(inviteMail(invite))}</textarea>
+        <div class="actions"><button id="copy-mail">Szöveg másolása</button></div>
+      </div>
+      ${settings}
+    </div>
+    <section class="print-sheet" aria-hidden="true">
+      <p class="print-office">${esc(invite.office)}</p>
+      <h1>Vezesse az útnyilvántartását a Trippo appal</h1>
+      <div class="qr">${qrSvg(url)}</div>
+      <p>Olvassa be a QR-kódot a telefonja kamerájával, vagy nyissa meg: <b>${esc(url)}</b></p>
+      <ol>
+        <li>Töltse le a Trippót az App Store-ból.</li>
+        <li>Az appban: Beállítások › Könyvelői hozzáférés › Kódom van a könyvelőmtől</li>
+        <li>Írja be a kódot: <b class="print-code">${esc(code)}</b></li>
+      </ol>
+      <p>Csak a lezárt hónapjait látjuk, módosítani nem tudjuk őket. Semmit nem osztunk meg az Ön jóváhagyása nélkül, és bármikor visszavonhatja.</p>
+    </section>`);
+  document.body.classList.add('invite-page');
+  on('#print', 'click', () => window.print());
+  on('#copy-link', 'click', (ev) => copyText(ev.currentTarget, url));
+  on('#copy-code', 'click', (ev) => copyText(ev.currentTarget, code));
+  on('#copy-mail', 'click', (ev) => copyText(ev.currentTarget, document.getElementById('mail').value));
+  on('#png', 'click', () => qrPng(url, file));
+  on('#office-form', 'submit', (ev) => {
+    ev.preventDefault();
+    inviteChange(ev.target.querySelector('button'), { action: 'invite-save', office: document.getElementById('office').value });
+  });
+  on('#toggle', 'click', (ev) => inviteChange(ev.currentTarget, { action: 'invite-enable', enabled: !invite.enabled }));
+  on('#rotate', 'click', (ev) => {
+    if (!window.confirm('Új kódot készítesz? A mostani kód, link és a kinyomtatott QR-kód azonnal megszűnik. Akik már csatlakoztak, maradnak.')) return;
+    inviteChange(ev.currentTarget, { action: 'invite-rotate' });
+  });
+}
+
 /* ---------- Demo (made-up data) ---------- */
 
 const NORM = 8.6;
@@ -533,12 +728,13 @@ async function header(s, demo) {
 }
 
 async function route() {
-  document.body.classList.remove('landing');
+  document.body.classList.remove('landing', 'invite-page');
   const hash = location.hash.slice(1);
   const s = await session();
   try {
     if (hash.startsWith('demo')) {
       await header(null, true);
+      if (hash === 'demo/meghivo') return inviteView(DEMO_INVITE, true);
       const clients = demoData();
       const one = hash.match(/^demo\/c\/(.+)$/);
       const client = one && clients.find((c) => c.id === one[1]);
@@ -547,6 +743,10 @@ async function route() {
     await header(s, false);
     if (/^[0-9a-f]{64}$/.test(hash)) return await linkView(hash);
     if (!s) return loginView();
+    if (hash === 'meghivo') {
+      const { invite } = await call({ action: 'invite' });
+      return inviteView(invite);
+    }
     const one = hash.match(/^c\/(.+)$/);
     if (one) {
       const { name, closes, reopened, owner } = await call({ action: 'client', id: one[1] });

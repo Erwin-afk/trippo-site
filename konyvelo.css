@@ -148,6 +148,38 @@ body.landing { background: linear-gradient(180deg, var(--card) 0, var(--bg) 620p
 button:active:not(:disabled) { transform: scale(.98); }
 .month.open .details { animation: fade .25s ease both; }
 
+/* The accountant's invite (#meghivo) */
+.button.primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.empty .button.primary { margin: 8px 0 4px; }
+.invite-grid { display: grid; grid-template-columns: minmax(0, 340px) minmax(0, 1fr); gap: 16px; align-items: start; }
+.invite-grid .card { margin: 0; padding: 20px; }
+.invite-grid .card:last-child { grid-column: 1 / -1; }
+.invite-grid h2 { font-size: 19px; margin: 0 0 8px; }
+.qr-card { text-align: center; }
+.qr svg { display: block; width: 100%; max-width: 260px; height: auto; margin: 0 auto; border-radius: 8px; }
+.invite-code { font: 800 26px/1.2 ui-monospace, Menlo, Consolas, monospace; letter-spacing: .08em; margin: 12px 0 2px; user-select: all; }
+.invite-url { color: var(--muted); font-size: 14px; margin: 0 0 14px; word-break: break-all; }
+.qr-card .actions { justify-content: center; }
+.invite-grid .steps { margin: 0 0 16px; max-width: none; padding-left: 20px; }
+.invite-grid .steps li { margin: 6px 0; }
+textarea { font: inherit; font-size: 14px; width: 100%; box-sizing: border-box; padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--bg); color: var(--text); resize: vertical; margin-bottom: 8px; }
+.setting { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 0 0; margin-top: 14px; border-top: 1px solid var(--line); flex-wrap: wrap; }
+.setting > div { min-width: 0; flex: 1 1 260px; }
+#office-form { max-width: 520px; }
+.print-sheet { display: none; }
+@media (max-width: 760px) {
+  .invite-grid { grid-template-columns: 1fr; }
+}
+@media print {
+  body.invite-page #app > :not(.print-sheet) { display: none !important; }
+  body.invite-page .print-sheet { display: block; text-align: center; padding-top: 24px; }
+  .print-sheet h1 { font-size: 28px; margin: 4px 0 20px; }
+  .print-office { font-size: 20px; font-weight: 700; margin: 0; }
+  .print-sheet .qr svg { max-width: 300px; }
+  .print-sheet ol { text-align: left; max-width: 460px; margin: 20px auto; font-size: 17px; }
+  .print-code { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 22px; letter-spacing: .08em; }
+}
+
 /* E-mail code step (otp.js), shared by the portal and Útjaim. */
 .code-step { gap: 14px; }
 .email-chip { display: inline-flex; align-items: center; gap: 8px; max-width: 100%; justify-self: start; border-radius: 999px; padding: 7px 14px; background: var(--bg); font-size: 15px; }

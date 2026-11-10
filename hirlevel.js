@@ -47,7 +47,8 @@ button.addEventListener('click', async () => {
     button.disabled = false;
     return;
   }
-  if (status === 'confirmed') done('Köszönjük, feliratkoztál! Szólunk, amikor a Trippo elérhető.');
+  // A page of its own, so Google Ads (with consent) counts confirmed sign-ups only, never this page's token.
+  if (status === 'confirmed') location.replace('/hirlevel-koszonjuk');
   else if (status === 'unsubscribed') done('Leiratkoztál. Több hírlevelet nem küldünk.');
   else if (leaving) done('Ez a leiratkozó link már nem érvényes.', support);
   else done('Ez a megerősítő link lejárt vagy már nem érvényes.', signUp);

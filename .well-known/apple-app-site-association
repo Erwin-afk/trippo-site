@@ -1,0 +1,10 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": ["W23SW7YU7Y.com.erwin.trippo"],
+        "components": [{ "/": "/meghivo/*", "comment": "Accountant invites open the app; every other page stays on the web." }]
+      }
+    ]
+  }
+}

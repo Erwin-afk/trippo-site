@@ -9,6 +9,7 @@
 <link rel="canonical" href="https://trippo.hu/adatvedelem">
 <link rel="icon" href="favicon.png">
 <link rel="stylesheet" href="style.css">
+<script src="consent.js" defer></script>
 </head>
 <body>
 <header class="bar">
@@ -30,7 +31,7 @@
 </header>
 <main class="doc">
 <h1>Adatkezelési tájékoztató</h1>
-<p class="muted">Hatályos: <span class="todo">[2026. ___ __.]</span> · Utolsó módosítás: 2026. november 9.</p>
+<p class="muted">Hatályos: <span class="todo">[2026. ___ __.]</span> · Utolsó módosítás: 2026. november 10.</p>
 
 <p>Ez a tájékoztató elmondja, milyen adatokat kezel a Trippo útnyilvántartó alkalmazás (a továbbiakban: „Trippo”),
 miért, meddig, kinek adjuk át, és milyen jogaid vannak. Az EU általános adatvédelmi rendelete (GDPR, 2016/679)
@@ -57,15 +58,17 @@ miért, meddig, kinek adjuk át, és milyen jogaid vannak. Az EU általános ada
 <tr><td>Tankolási blokkok és km-óra fotói, a blokk adatai</td><td>Költségek nyilvántartása, a km-óra állás igazolása</td><td>Szerződés teljesítése – 6. cikk (1) b)</td></tr>
 <tr><td>Előfizetés állapota (Apple vásárlási azonosító)</td><td>Pro funkciók elérése</td><td>Szerződés teljesítése – 6. cikk (1) b)</td></tr>
 <tr><td>Lezárt hónapok, azok ellenőrző kódja és a változásnapló</td><td>A lezárt hónapok utólagos módosíthatatlanságának igazolása</td><td>Szerződés teljesítése – 6. cikk (1) b)</td></tr>
-<tr><td>Könyvelők: e-mail-cím, belépési adatok, a felvett ügyfelek és az ügyfeleknek adott név</td><td>Könyvelői portál: fiók, belépés, ügyféllista</td><td>Szerződés teljesítése – 6. cikk (1) b)</td></tr>
+<tr><td>Könyvelők: e-mail-cím, belépési adatok, a felvett ügyfelek és az ügyfeleknek adott név; ha meghívót készítenek, az iroda neve és a meghívókód</td><td>Könyvelői portál: fiók, belépés, ügyféllista, ügyfelek meghívása</td><td>Szerződés teljesítése – 6. cikk (1) b)</td></tr>
+<tr><td>Meghívókód-keresések száma: a fiók azonosítójával, vagy a weboldalon az IP-cím kulcsolt lenyomatával (magát az IP-címet nem tároljuk)</td><td>A meghívókódok kitalálásának és tömeges próbálgatásának megakadályozása</td><td>Jogos érdek – 6. cikk (1) f)</td></tr>
 <tr><td>Hibajelentés: a hiba szövege, a képernyő, ahol történt, az app verziója és a telefon típusa – felhasználói azonosító nélkül</td><td>Az app hibáinak felderítése és javítása</td><td>Jogos érdek – 6. cikk (1) f)</td></tr>
 <tr id="hirlevel"><td>Hírlevél: e-mail-cím, a feliratkozás és a megerősítés időpontja</td><td>Értesítés az app indulásáról, a havi NAV-üzemanyagár és az újdonságok elküldése</td><td>Hozzájárulás – 6. cikk (1) a), bármikor visszavonható a levelek alján lévő leiratkozó linkkel</td></tr>
 <tr><td>Panasz és a rá adott válasz</td><td>Panaszkezelés</td><td>Jogi kötelezettség – 6. cikk (1) c), 1997. évi CLV. törvény 17/A. §</td></tr>
+<tr id="google-ads"><td>Csak ha a weboldal sütisávjában engedélyezed: a Google Ads sütijei (például <code>_gcl_au</code>), a hirdetéskattintás azonosítója, a megnyitott oldal címe, a böngésző és az eszköz adatai, IP-cím</td><td>Hirdetéseink mérése: hányan jutnak el egy hirdetésre kattintás után a hírlevél-feliratkozásig</td><td>Hozzájárulás – 6. cikk (1) a), 2003. évi C. törvény 155. § (4); bármikor visszavonható az oldalak alján lévő „Sütibeállítások” linkkel</td></tr>
 <tr><td>A weboldal megnyitásakor a böngésződ által küldött adatok (IP-cím, időpont, kért oldal, böngésző típusa)</td><td>A weboldal biztonságos kiszolgálása</td><td>Jogos érdek – 6. cikk (1) f)</td></tr>
 </table>
 <p><b>Ami a telefonodon marad:</b> a naptárad eseményeit csak a telefonon olvassuk (ha engedélyezed), hogy a találkozókat az utakhoz rendeljük;
 a naptárt nem töltjük fel. A magánútként megjelölt utak útvonalát és megállóit nem töltjük fel a felhőbe, csak a km-t és az időpontot.</p>
-<p>Nem használunk hirdetési azonosítót, nem követünk más appokban vagy weboldalakon, és nem adjuk el az adataidat.</p>
+<p>Az appban nem használunk hirdetési azonosítót, nem követünk más appokban vagy weboldalakon, és nem adjuk el az adataidat. A weboldalon csak a hozzájárulásoddal mérünk (9. pont).</p>
 
 <h2>3. Kiknek adjuk át az adatokat (adatfeldolgozók)?</h2>
 <table class="stack">
@@ -78,6 +81,7 @@ a naptárt nem töltjük fel. A magánútként megjelölt utak útvonalát és m
 <tr><td>Apple Inc. / Apple Distribution International</td><td>Alkalmazásbolt, előfizetés fizetése, Apple-belépés, térkép; az élő tevékenység elindítása és lezárása push-értesítéssel (a készülék tokenje és a kijelzőn látható szöveg: km, idő, úti cél; helyadat nélkül)</td><td>Írország / USA</td></tr>
 <tr><td>RevenueCat Inc.</td><td>Előfizetés állapotának kezelése (anonim felhasználói azonosító)</td><td>USA – SCC</td></tr>
 <tr><td>Anthropic PBC</td><td>Csak Pro előfizetésnél, és csak ha fotót olvastatsz: a fotó automatikus kiolvasása (km-óra, blokk)</td><td>USA – SCC</td></tr>
+<tr><td>Google Ireland Limited (Gordon House, Barrow Street, Dublin 4, Írország)</td><td>Csak ha a weboldal sütisávjában engedélyezed: a Google Ads hirdetések mérése a weboldalon. Remarketinget és személyre szabott hirdetést nem kapcsolunk be. A Google ezeket az adatokat a saját <a href="https://policies.google.com/privacy?hl=hu">adatvédelmi irányelvei</a> szerint is kezeli.</td><td>EU (Írország); a Google LLC felé USA – EU–USA adatvédelmi keretrendszer</td></tr>
 <tr><td>650 Industries Inc. (Expo)</td><td>Az alkalmazás frissítéseinek kiszolgálása (személyes adatot nem kap)</td><td>USA</td></tr>
 </table>
 <p>Az EU-n kívüli adattovábbítás az Európai Bizottság által elfogadott általános szerződési feltételek (GDPR 46. cikk)
@@ -85,7 +89,8 @@ vagy az EU–USA adatvédelmi keretrendszer alapján történik.</p>
 <p>A weboldal megnyitásakor a kiszolgáló technikailag megkapja az IP-címedet, és a tárhelyszolgáltató a naplóiban rögzítheti a kérést. Ezekből a naplókból mi nem készítünk statisztikát, és nem azonosítunk velük senkit.</p>
 <p>Ha az appban visszajelzést küldesz, az üzeneted mellett az app verzióját és a telefonod típusát tároljuk, helyadatot nem.</p>
 <p>Ha a könyvelődnek küldesz riportot, azt te küldöd a saját e-mail-fiókodból; a címzett önálló adatkezelő lesz. Ha lezáráskor bekapcsolva hagyod az automatikus küldést (kikapcsolható), a lezárt hónap adatait (összegek, utak, célok, partnerek, km-óra) e-mailben elküldjük a megadott könyvelői címre, neked pedig másolatot; a címzett itt is önálló adatkezelő. Az első küldés előtt a címzettnek megerősítést küldünk a te e-mail-címeddel, és csak akkor kap jelentést, ha jóváhagyja, vagy már felvette a könyvelői linkedet.
-Ha <b>könyvelői linket</b> hozol létre, a link birtokosa böngészőben látja a lezárt hónapjaid adatait (összegek, utak, célok, partnerek, km-óra, ellenőrző kód) – csak olvasásra, amíg vissza nem vonod. A linket mi nem tároljuk, csak egy ellenőrző lenyomatát. Ha a könyvelőd a <b>könyvelői portálon</b> felveszi a linket az ügyfelei közé, a link ezután csak az ő fiókjával működik; az e-mail-címét tároljuk, és az appban megmutatjuk neked. A hozzáférést az appban bármikor visszavonhatod. A portálra belépő könyvelő e-mail-címét a fiókja működtetéséhez kezeljük, amíg a fiókot törölni nem kéri.</p>
+Ha <b>könyvelői linket</b> hozol létre, a link birtokosa böngészőben látja a lezárt hónapjaid adatait (összegek, utak, célok, partnerek, km-óra, ellenőrző kód) – csak olvasásra, amíg vissza nem vonod. A linket mi nem tároljuk, csak egy ellenőrző lenyomatát. Ha a könyvelőd a <b>könyvelői portálon</b> felveszi a linket az ügyfelei közé, a link ezután csak az ő fiókjával működik; az e-mail-címét tároljuk, és az appban megmutatjuk neked. A hozzáférést az appban bármikor visszavonhatod. A portálra belépő könyvelő e-mail-címét a fiókja működtetéséhez kezeljük, amíg a fiókot törölni nem kéri.
+Ha a könyvelődtől <b>meghívókódot</b> kapsz (papíron, e-mailben, QR-kóddal vagy a trippo.hu/meghivo oldalon), és beírod az appban, az app megmutatja az iroda nevét, a könyvelő belépési e-mail-címét és azt, hogy pontosan mit lát. A kód beírásával még semmit nem osztunk meg: megosztás csak akkor jön létre, ha ezt az appban kifejezetten elfogadod. Ekkor a könyvelő a portálon ugyanúgy, csak olvasásra látja a lezárt hónapjaidat, mint egy felvett linknél, és látja azt a nevet, amelyet az elfogadáskor megadtál. Rögzítjük, hogy a megosztás meghívóval jött létre, mikor, és melyik irodanévvel. A hozzáférést az appban ugyanígy bármikor visszavonhatod. A meghívót készítő könyvelő irodanevét látja mindenki, akinek a kódot odaadja, a kódot beíró ügyfél pedig az e-mail-címét is; a könyvelő a kódot bármikor kikapcsolhatja, vagy újat készíthet helyette.</p>
 
 <h2>4. Meddig őrizzük?</h2>
 <ul>
@@ -93,8 +98,10 @@ Ha <b>könyvelői linket</b> hozol létre, a link birtokosa böngészőben látj
 <li>A biztonsági mentésekből legfeljebb 7 napon belül tűnnek el az adatok.</li>
 <li>A hibajelentéseket 90 napig őrizzük, utána automatikusan törlődnek.</li>
 <li>A hírlevél-feliratkozást a leiratkozásig őrizzük. A meg nem erősített címet 14 nap után töröljük.</li>
+<li>A Google Ads sütijei legfeljebb 90 napig maradnak a böngésződben. A sütisávban adott válaszodat 6 hónapig jegyezzük meg, utána újra megkérdezünk.</li>
 <li>A panaszt és a rá adott választ 3 évig őrizzük, ezért ezek a fiók törlése után is megmaradnak ennyi ideig.</li>
 <li>A könyvelői portál fiókjának adatait addig őrizzük, amíg a fiók törlését nem kéred.</li>
+<li>A meghívókód-keresések számlálóit legfeljebb 1 napig őrizzük.</li>
 <li><b>Fontos:</b> az útnyilvántartást az adóhatóság az adó megállapításához való jog elévüléséig (a 2026-os naplót 2032. december 31-ig) kérheti tőled. Törlés előtt töltsd le az adataidat és a lezárt hónapok PDF-jeit – a megőrzés a te kötelezettséged.</li>
 </ul>
 
@@ -104,7 +111,7 @@ Ha <b>könyvelői linket</b> hozol létre, a link birtokosa böngészőben látj
 <li><b>Helyesbítés:</b> az adataidat az appban bármikor javíthatod.</li>
 <li><b>Törlés:</b> a fiókodat és minden adatodat az appban törölheted.</li>
 <li><b>Korlátozás, tiltakozás:</b> írj a fenti e-mail-címre.</li>
-<li><b>Hozzájárulás visszavonása:</b> a helymeghatározást, naptár- és kamerahozzáférést a telefon beállításaiban bármikor kikapcsolhatod.</li>
+<li><b>Hozzájárulás visszavonása:</b> a helymeghatározást, naptár- és kamerahozzáférést a telefon beállításaiban bármikor kikapcsolhatod. A weboldalon a Google Ads mérést az oldalak alján lévő „Sütibeállítások” linkkel kapcsolhatod ki; ilyenkor a Google sütijeit is töröljük.</li>
 </ul>
 <p>Kérésedre egy hónapon belül válaszolunk. Ha úgy érzed, megsértettük a jogaidat, panaszt tehetsz a
 <b>Nemzeti Adatvédelmi és Információszabadság Hatóságnál</b> (NAIH, 1055 Budapest, Falk Miksa utca 9–11.,
@@ -121,7 +128,8 @@ a fotók privát tárhelyen vannak. A lezárt hónapok adatait az adatbázis ell
 <p>Ha a tájékoztató lényegesen változik, az appban jelezzük.</p>
 
 <h2 id="sutik">9. Sütik és a böngésződben tárolt adatok</h2>
-<p><b>Nyilvános oldalak:</b> nem használunk sütiket, nem tárolunk semmit a böngésződben, és nem töltünk be semmit külső szolgáltatótól. Nincs látogatottsági statisztika, hirdetés vagy külső betűtípus.</p>
+<p><b>Nyilvános oldalak:</b> alapból nem használunk sütiket, és nem töltünk be semmit külső szolgáltatótól. Nincs látogatottsági statisztika és külső betűtípus. Az első megnyitáskor egy sáv megkérdezi, engedélyezed-e a Google Ads mérést; amíg nem fogadod el, a Google-tól semmi sem töltődik be.</p>
+<p><b>Google Ads mérés (csak hozzájárulással):</b> ha az „Elfogadom” gombot választod, betöltjük a Google címkéjét (gtag.js). Ez sütiket helyez el a böngésződben (például <code>_gcl_au</code>, legfeljebb 90 napig), és elküldi a Google-nak a megnyitott oldal címét, a hirdetéskattintás azonosítóját, valamint a böngésző és az eszköz adatait. Ebből látjuk, hányan jutnak el egy hirdetés után a hírlevél-feliratkozásig. Remarketinget, személyre szabott hirdetést és Google Analyticset nem használunk. A válaszodat <code>trippo-consent</code> néven a böngésződ helyi tárolójában 6 hónapig megjegyezzük (csak a választ és a dátumát). Az oldalak alján lévő <b>Sütibeállítások</b> linkkel bármikor meggondolhatod magad; ha kikapcsolod, a Google sütijeit töröljük. A belépős oldalakon (Útjaim, könyvelői portál) nincs ilyen mérés.</p>
 <p><b>Könyvelői portál:</b> belépés után a böngésződ helyi tárolójában (localStorage), <code>trippo-accountant-auth</code> néven megőrizzük a belépésedet, hogy ne kelljen minden megnyitáskor újra belépned. Ez nem süti, nem követ, és semmi másra nem használjuk. Belépés előtt nem jön létre; a belépési űrlap jelzi, és a belépéssel hozzájárulsz (2003. évi C. törvény 155. § (4)).</p>
 <p><b>Útjaim</b> (trippo.hu/fiokom): ugyanígy, <code>trippo-driver-auth</code> néven őrizzük meg a belépésedet, ugyanezekkel a feltételekkel. Amit itt módosítasz (az út besorolását, célját, partnerét), az ugyanúgy a fiókodban tárolódik, mintha az appban tetted volna, és a magánutakból itt is csak a km és az időpont marad a szerveren.</p>
 <p>Ha az Útjaimban módosítasz egy utat, a böngésződ <code>trippo-web-edits</code> néven legfeljebb 14 napig megjegyzi az út azonosítóját, a mentés idejét és a módosított adatok ellenőrző lenyomatát. Magát a címet, a célt vagy a partnert nem tárolja, és a lenyomatból ezek nem olvashatók vissza. Ebből tudjuk jelezni, ha a telefonod később felülírta a módosításodat.</p>

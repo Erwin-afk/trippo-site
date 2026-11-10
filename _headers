@@ -27,6 +27,23 @@
   Cache-Control: no-store
   Referrer-Policy: no-referrer
 
+# Accountant invites: the code is in the address, so no other site gets it.
+/meghivo/*
+  Referrer-Policy: no-referrer
+  X-Robots-Tag: noindex
+
+/meghivo
+  Referrer-Policy: no-referrer
+  X-Robots-Tag: noindex
+
+/meghivo.html
+  Referrer-Policy: no-referrer
+  X-Robots-Tag: noindex
+
+# Universal links: iOS reads this when the app is installed or updated.
+/.well-known/apple-app-site-association
+  Content-Type: application/json
+
 # Images and films keep their names when they change only rarely: a week in the browser is safe.
 /images/*
   Cache-Control: public, max-age=604800
