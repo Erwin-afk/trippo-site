@@ -16,3 +16,34 @@
 .calc-result .sum span { color: var(--text); font-weight: 700; }
 .calc-result .sum b { font-size: 20px; }
 @media (max-width: 520px) { .calc-form { grid-template-columns: 1fr; } }
+
+/* Online kiküldetési rendelvény (kikuldetesi-rendelveny-online.html). */
+.rv-trips-box { display: grid; gap: 12px; }
+.rv-trip { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 12px; border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px 14px; margin: 0; background: var(--card); }
+.rv-trip legend { font-weight: 700; padding: 0 6px; }
+.rv-trip label { display: block; font-size: 14px; font-weight: 600; }
+.rv-trip label.wide { grid-column: 1 / -1; }
+.rv-trip input { display: block; font: inherit; font-weight: 400; width: 100%; box-sizing: border-box; margin-top: 6px; padding: 11px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); color: var(--text); }
+.rv-trip input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+.rv-remove { grid-column: 1 / -1; justify-self: end; min-height: 44px; padding: 0 14px; border: 0; background: none; color: var(--muted); font: inherit; font-size: 14px; text-decoration: underline; cursor: pointer; }
+#rv-print:disabled { opacity: .45; cursor: default; }
+@media (min-width: 900px) { .rv-trip { grid-template-columns: 150px 90px 1fr 1fr 1.2fr auto; align-items: end; } .rv-trip label.wide { grid-column: auto; } .rv-remove { grid-column: auto; } }
+.rv-doc { display: none; }
+@media print {
+  .rv-page header, .rv-page .rv-screen, .rv-page .consent, .rv-page .android-note { display: none !important; }
+  .rv-page .rv-doc { display: block; color: #000; font-size: 11pt; }
+  .rv-page main.doc { max-width: none; padding: 0; }
+  .rv-doc h2 { margin: 0; font-size: 18pt; }
+  .rv-doc .rv-sub { margin: 2pt 0 12pt; }
+  .rv-doc table { width: 100%; border-collapse: collapse; margin: 0 0 10pt; }
+  .rv-doc th, .rv-doc td { border: 0.5pt solid #000; padding: 4pt 6pt; text-align: left; vertical-align: top; }
+  .rv-fields th { width: 45%; font-weight: 600; }
+  .rv-trips thead th { font-weight: 700; }
+  .rv-doc .n { text-align: right; white-space: nowrap; }
+  .rv-doc tfoot td { font-weight: 700; }
+  .rv-blank { height: 18pt; }
+  .rv-sign { display: flex; justify-content: space-between; gap: 18pt; margin-top: 36pt; }
+  .rv-sign div { flex: 1; border-top: 0.5pt solid #000; padding-top: 4pt; text-align: center; }
+  .rv-sign div:first-child { border-top: 0; text-align: left; }
+  .rv-note { font-size: 8.5pt; margin-top: 18pt; }
+}
