@@ -23,14 +23,33 @@
 <link rel="stylesheet" href="konyvelo.css">
 <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Trippo","item":"https://trippo.hu/"},{"@type":"ListItem","position":2,"name":"Könyvelői portál","item":"https://trippo.hu/konyvelo"}]}]}</script>
 </head>
-<body>
+<body class="landing">
 <header class="bar">
   <div class="bar-in">
     <div class="bar-left"><a class="brand" href="/"><span class="logo"></span><span>Trippo</span></a><a class="tag" href="#">Könyvelői portál</a></div>
     <div class="bar-right"><div id="who" class="who"></div><nav class="bar-nav"><a href="/">Főoldal</a></nav></div>
   </div>
 </header>
-<main class="wide" id="app"><p class="muted">Betöltés…</p></main>
+<main class="wide" id="app">
+  <!-- Shown until konyvelo.js takes over (and to search engines that don't run scripts). Same words as the script's start page. -->
+  <section class="hero">
+    <div>
+      <p class="eyebrow">Ingyenes a könyvelőknek</p>
+      <h1>Minden ügyfeled útnyilvántartása egy helyen</h1>
+      <p class="lead">Ügyfeleid a Trippo appal vezetik a kilométereiket. Te itt látod a lezárt hónapjaikat, készen a könyveléshez.</p>
+      <a class="button" href="#demo">Minta megtekintése</a>
+    </div>
+  </section>
+  <section class="block">
+    <h2>Amit nem kell többé megkérdezned</h2>
+    <div class="features">
+      <div><h3>Ki zárta le a hónapot?</h3><p>Egy pillantásra látod, kitől van meg a múlt hónap, és kire kell még várni.</p></div>
+      <div><h3>Minden változás látszik</h3><p>A lezárt hónap befagy. Ha az ügyfél javításra újranyitja, itt látod, és az ellenőrző kód meg a változásnapló megmutatja, mi változott.</p></div>
+      <div><h3>Kész az Excelben</h3><p>Havi vagy éves Excel ügyfelenként, és egy fájlban az összes ügyfeled hónapja: kifizetendő összeg, útlista, költségek, NAV-ár és km-óra.</p></div>
+      <div><h3>Csak amit megosztanak</h3><p>Kizárólag a lezárt hónapokat látod, és az ügyfeled bármikor visszavonhatja.</p></div>
+    </div>
+  </section>
+</main>
 <footer class="foot"><a href="/">Trippo</a><a href="adatvedelem">Adatkezelési tájékoztató</a><a href="aszf">Felhasználási feltételek</a><a href="tamogatas">Támogatás</a><a href="aszf#panasz">Panaszkezelés</a><a href="adatvedelem#sutik">Sütik</a><a href="impresszum">Impresszum</a></footer>
 <noscript><p class="muted">A portálhoz JavaScript szükséges.</p></noscript>
 <script src="vendor/supabase-2.118.0.js"></script>

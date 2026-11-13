@@ -27,7 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const res = await fetch('https://rudnmzhfgnynlmjdrwoy.supabase.co/functions/v1/newsletter', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ subscribe: email, website: form.website.value, source: 'home' }),
+        body: JSON.stringify({ subscribe: email, website: form.website.value, source: document.documentElement.dataset.android ? 'android' : 'home' }),
       });
       const { status } = await res.json();
       if (status === 'check') {
