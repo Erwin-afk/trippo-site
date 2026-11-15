@@ -1,4 +1,4 @@
-:root { --bg: #f5f3ef; --card: #fff; --text: #0f1419; --muted: #5b6470; --accent: #0a8f6a; --line: #e7e4de; --on-accent: #fff; }
+:root { --bg: #f5f3ef; --card: #fff; --text: #0f1419; --muted: #5b6470; --accent: #077a5a; --line: #e7e4de; --on-accent: #fff; }
 @media (prefers-color-scheme: dark) { :root { --bg: #0b0d10; --card: #15181d; --text: #f3f5f7; --muted: #a3abb5; --accent: #3ddc97; --line: #252a31; --on-accent: #06120d; } }
 * { box-sizing: border-box; }
 body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif; }
