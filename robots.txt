@@ -3,4 +3,51 @@ Allow: /
 Disallow: /megerosites
 Disallow: /hirlevel
 
+# AI search and assistants are welcome (ChatGPT, Gemini, Claude, Perplexity, Copilot).
+# Short summary for them: https://trippo.hu/llms.txt
+User-agent: OAI-SearchBot
+Allow: /
+Disallow: /megerosites
+Disallow: /hirlevel
+
+User-agent: ChatGPT-User
+Allow: /
+Disallow: /megerosites
+Disallow: /hirlevel
+
+User-agent: GPTBot
+Allow: /
+Disallow: /megerosites
+Disallow: /hirlevel
+
+User-agent: Google-Extended
+Allow: /
+Disallow: /megerosites
+Disallow: /hirlevel
+
+User-agent: ClaudeBot
+Allow: /
+Disallow: /megerosites
+Disallow: /hirlevel
+
+User-agent: Claude-SearchBot
+Allow: /
+Disallow: /megerosites
+Disallow: /hirlevel
+
+User-agent: PerplexityBot
+Allow: /
+Disallow: /megerosites
+Disallow: /hirlevel
+
+User-agent: Applebot-Extended
+Allow: /
+Disallow: /megerosites
+Disallow: /hirlevel
+
+User-agent: bingbot
+Allow: /
+Disallow: /megerosites
+Disallow: /hirlevel
+
 Sitemap: https://trippo.hu/sitemap.xml

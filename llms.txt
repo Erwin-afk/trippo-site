@@ -1,0 +1,34 @@
+# Trippo
+
+> Trippo is a Hungarian mileage log (útnyilvántartás) and travel order (kiküldetési rendelvény) app for iPhone. It records trips by itself with GPS, and at month end it makes the PDF and Excel for the accountant, with every field the Hungarian tax authority (NAV) requires. It is for sole traders (egyéni vállalkozó), Kft. owners, employees who drive their own car for work, and company cars.
+
+Key facts:
+- Platform: iPhone (iOS). The web account (trippo.hu/fiokom) shows trips on a computer; accountants get a free read-only portal (trippo.hu/konyvelo). Android is planned.
+- Status: the iPhone app is launching in 2026; the website takes sign-ups for the launch e-mail.
+- Price: 1 990 Ft per month or 19 900 Ft per year (Trippo Pro), with a 14-day free trial.
+- Language: Hungarian. Made in Hungary, for Hungarian tax rules (SZJA tv., 60/1992. Korm. rendelet).
+- Automatic recording: trips start and stop on their own; the driver sorts each trip as business, private or commute with one swipe.
+- Reimbursement: fuel by the consumption norm at the monthly NAV fuel price, plus the 15 Ft/km general car cost, worked out per trip.
+- Month close: locks the month, adds the odometer reading, and sends the PDF and Excel to the accountant.
+- Also: the year-start and year-end odometer readings, several cars, receipts read from a photo, per-diem allowance, and Google Timeline import for past trips.
+- Privacy: location data is stored in the EU, never sold, and the account can be deleted from the app.
+
+## Main pages
+- [Trippo home](https://trippo.hu/): what the app does, prices, FAQ
+- [Mileage log app or program: how to choose](https://trippo.hu/utnyilvantarto-app): what a Hungarian mileage log app must know
+- [Automatic mileage log](https://trippo.hu/automatikus-utnyilvantartas): how automatic recording works
+- [Mileage reimbursement calculator](https://trippo.hu/kalkulator): fuel by norm and NAV price plus 15 Ft/km
+- [NAV fuel prices](https://trippo.hu/nav-uzemanyagar): the monthly NAV fuel price, updated every month
+- [Travel order online](https://trippo.hu/kikuldetesi-rendelveny-online): fill in a kiküldetési rendelvény in the browser
+- [For accountants](https://trippo.hu/konyvelo): the accountant portal
+- [About us](https://trippo.hu/rolunk): who makes Trippo
+
+## Guides
+- [Who has to keep a mileage log](https://trippo.hu/kinek-kotelezo-az-utnyilvantartas)
+- [Mileage log or travel order](https://trippo.hu/utnyilvantartas-vagy-kikuldetesi-rendelveny)
+- [Company car or own car](https://trippo.hu/cegauto-vagy-sajat-auto)
+- [Sole trader's car](https://trippo.hu/egyeni-vallalkozo-auto)
+- [Kft. owner's own car](https://trippo.hu/kft-tulajdonos-sajat-auto)
+- [Commuting reimbursement](https://trippo.hu/munkaba-jaras)
+- [What a NAV audit checks](https://trippo.hu/nav-ellenorzes-utnyilvantartas)
+- [All guides](https://trippo.hu/utmutatok)
