@@ -271,7 +271,7 @@ function shareSheet(c) {
     km('Magán', s.personal_km),
     km('Munkába járás', s.commute_km),
     km('Km-óra a hónap elején', o.start),
-    km('Km-óra a hónap végén', o.end),
+    o.end !== null ? km('Km-óra a hónap végén', o.end) : text('Km-óra a hónap végén', c.draft ? 'lezáráskor kell megadni' : 'nem adták meg (a hónap újranyitásával pótolható)'),
     km('Km-óra az év első napján', o.yearStart),
     { cells: [] },
     section('Adatok'),
@@ -286,6 +286,10 @@ function shareSheet(c) {
   ];
   return { name: 'Összesítő', widths: [46, 42], rows, merges: [`A${rows.length}:B${rows.length}`], portrait: true };
 }
+
+/** Why the two amounts are added: both together are the tax-free maximum for the driver's own car. */
+const OWN_CAR_NOTE =
+  'Adómentes költségtérítés saját autóra: a norma szerinti üzemanyag a havi NAV-áron, plusz 15 Ft/km általános normaköltség; a kettő összege (SZJA tv., 60/1992. (IV. 1.) Korm. rendelet). A munkába járás és a magán km nincs benne.';
 
 function summarySheet(c) {
   if (isShareLog(c.snapshot)) return shareSheet(c);
@@ -317,7 +321,7 @@ function summarySheet(c) {
     km('Magán', s.personal_km),
     km('Munkába járás', s.commute_km),
     km('Km-óra a hónap elején', o.start),
-    km('Km-óra a hónap végén', o.end),
+    o.end !== null ? km('Km-óra a hónap végén', o.end) : text('Km-óra a hónap végén', c.draft ? 'lezáráskor kell megadni' : 'nem adták meg (a hónap újranyitásával pótolható)'),
     km('Km-óra az év első napján', o.yearStart),
     o.yearEnd !== null ? km('Km-óra az év utolsó napján', o.yearEnd) : text('Km-óra az év utolsó napján', 'év végén kerül rögzítésre'),
     { cells: [] },
@@ -335,7 +339,7 @@ function summarySheet(c) {
     text('Lezárva', c.draft ? 'Nincs lezárva: piszkozat, nem hivatalos' : closedText(c.closed_at)),
     { cells: [['Ellenőrző kód (SHA-256)', 'label'], [c.snapshot_hash ?? '–', 'hash']], height: 42 },
     { cells: [] },
-    { cells: [[borrowed ? 'Nem saját gépkocsi, útnyilvántartás alapján: a norma szerinti üzemanyagköltség számolható el, az általános normaköltség (15 Ft/km) és a kiküldetési rendelvény nem (NAV 8. füzet 3.2.).' : 'A számítás alapja: SZJA tv. és 60/1992. (IV. 1.) Korm. rendelet, a NAV által közzétett havi üzemanyagár.', 'note']], height: borrowed ? 44 : 30 },
+    { cells: [[borrowed ? 'Nem saját gépkocsi, útnyilvántartás alapján: a norma szerinti üzemanyagköltség számolható el, az általános normaköltség (15 Ft/km) és a kiküldetési rendelvény nem (NAV 8. füzet 3.2.).' : OWN_CAR_NOTE, 'note']], height: 44 },
   ];
   return { name: 'Összesítő', widths: [46, 42], rows, merges: [`A${rows.length}:B${rows.length}`], portrait: true };
 }

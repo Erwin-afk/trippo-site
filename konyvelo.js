@@ -24,6 +24,8 @@ const app = document.getElementById('app');
 const who = document.getElementById('who');
 
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+/** Line icons in SVG (no emoji or symbol characters). */
+const ICON_CHECK = '<svg class="ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>';
 // Grouped by hand: hu-HU leaves four-digit numbers ungrouped, so 1500 would sit next to 73 518.
 const grouped = (n) => String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, '\u00a0');
 const huf = (n) => (n == null ? '–' : grouped(n) + ' Ft');
@@ -240,10 +242,10 @@ function dashboardView(clients, demo) {
     }</div>
     ${
       clients.length
-        ? `<div class="stats">
-            <div class="stat"><b>${clients.length}</b><span>ügyfél</span></div>
-            <div class="stat"><b>${done}</b><span>${esc(monthShort(wanted))} lezárva</span></div>
-            <div class="stat"><b>${clients.length - done}</b><span>még hiányzik</span></div>
+        ? `<div class="card month-progress">
+            <div class="mp-head"><b>${esc(monthShort(wanted))} lezárása</b><span><b>${done}</b> / ${clients.length} ügyfél</span></div>
+            <progress max="${clients.length}" value="${done}" aria-label="${done} / ${clients.length} ügyfél lezárta">${done} / ${clients.length}</progress>
+            <p class="muted">${done === clients.length ? 'Mindenki lezárta, minden papír itt van.' : `${clients.length - done} ügyfél még nem zárta le: ők vannak a lista elején.`}</p>
           </div>
           <div class="tools">
             <input id="search" type="search" placeholder="Keresés névre vagy rendszámra" aria-label="Keresés">
@@ -270,9 +272,9 @@ function dashboardView(clients, demo) {
     const months = c.months.filter((m) => m.month.startsWith(String(year)));
     const total = months.reduce((s, m) => s + (m.payable ?? m.total ?? 0), 0);
     const kms = months.reduce((s, m) => s + (m.km || 0), 0);
-    return `<tr data-id="${esc(c.id)}">
+    return `<tr data-id="${esc(c.id)}"${ok ? '' : ' class="row-wait"'}>
       <td><a class="row-link" href="${base}${esc(c.id)}">${esc(c.name || 'Névtelen ügyfél')}</a><span class="sub">${esc(c.plates.join(', ') || 'Még nincs lezárt hónap')}</span></td>
-      <td><span class="pill ${ok ? 'ok' : 'wait'}">${ok ? 'Lezárva' : isReopened(c, wanted) ? 'Javítás alatt' : 'Hiányzik'}</span></td>
+      <td><span class="pill ${ok ? 'ok' : 'wait'}">${ok ? `${ICON_CHECK} Lezárva` : isReopened(c, wanted) ? 'Javítás alatt' : 'Hiányzik'}</span></td>
       <td class="num hide-sm">${km(kms)}</td>
       <td class="num">${total ? huf(total) : '–'}</td>
     </tr>`;

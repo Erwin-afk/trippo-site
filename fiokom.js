@@ -22,6 +22,14 @@ const app = document.getElementById('app');
 const who = document.getElementById('who');
 
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+/** Line icons drawn in SVG (never emoji or symbol characters: those look different on every device). */
+const svg = (paths, size = 18) => `<svg class="ico" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths}</svg>`;
+const ICON = {
+  lock: svg('<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>', 14),
+  edit: svg('<path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/>'),
+  close: svg('<path d="M18 6 6 18"/><path d="m6 6 12 12"/>'),
+  repeat: svg('<path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/>', 14),
+};
 const grouped = (n) => String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
 const huf = (n) => (n == null ? '–' : grouped(n) + ' Ft');
 const km = (n) => grouped(n ?? 0) + ' km';
@@ -462,7 +470,7 @@ function estimateBlock() {
       ];
   const big = isShareLog(s) ? `${esc(comma(s.business_share_pct))} %` : `≈ ${huf(payableOf(s))}`;
   return `<div class="card estimate" id="estimate">
-    <div class="estimate-head"><b>${isShareLog(s) ? 'Üzleti arány eddig' : 'Becsült elszámolás'}</b><span class="pill">Nincs lezárva</span></div>
+    <div class="estimate-head"><b>${isShareLog(s) ? 'Üzleti arány eddig' : 'Becsült elszámolás'}</b><span class="pill${closable(state.month) ? ' ok' : ''}">${esc(statusLabel())}</span></div>
     <p class="estimate-big">${big}</p>
     <table class="calc"><tbody>${rows.map(([label, value]) => `<tr><td>${label}</td><td class="num">${value}</td></tr>`).join('')}</tbody></table>
     <p class="muted small">Becslés a mostani utakból${waiting ? `, a döntésre váró ${waiting} út nélkül` : ''}. A napidíj és a végleges összeg a lezáráskor dől el az appban.</p>
@@ -491,11 +499,12 @@ function whoBar(email) {
 function statsBlock() {
   const sum = (cat) => state.trips.filter((t) => t.category === cat).reduce((a, t) => a + kmOf(t.distance_m), 0);
   const waiting = state.trips.filter((t) => t.category === 'unreviewed').length;
-  return `<div class="stats four">
+  // "Döntésre vár" only when something waits: a big 0 says nothing.
+  return `<div class="stats ${waiting ? 'four' : 'three'}">
     <div class="stat"><b>${km(sum('business'))}</b><span>Üzleti</span></div>
     <div class="stat"><b>${km(sum('personal'))}</b><span>Magán</span></div>
     <div class="stat"><b>${km(sum('commute'))}</b><span>Munkába járás</span></div>
-    <div class="stat${waiting ? ' alert' : ''}"><b>${waiting}</b><span>Döntésre vár</span></div>
+    ${waiting ? `<div class="stat alert"><b>${waiting}</b><span>Döntésre vár</span></div>` : ''}
   </div>`;
 }
 
@@ -514,7 +523,12 @@ function closedBlock(c) {
         ? `<table class="calc"><tbody><tr><td>Üzleti km</td><td class="num">${km(s.business_km)}</td></tr>
             <tr class="sum"><td>Üzleti arány</td><td class="num">${esc(comma(s.business_share_pct))} %</td></tr></tbody></table>`
         : `<table class="calc"><tbody>${money.map(([label, value]) => `<tr><td>${label}</td><td class="num">${huf(value)}</td></tr>`).join('')}
-            <tr class="sum"><td>Kifizetendő összesen</td><td class="num">${huf(payableOf(s))}</td></tr></tbody></table>`
+            <tr class="sum"><td>Kifizetendő összesen</td><td class="num">${huf(payableOf(s))}</td></tr></tbody></table>
+          <p class="muted small">${
+            s.usage === 'borrowed'
+              ? 'Nem saját autó: a norma szerinti üzemanyag számolható el, a 15 Ft/km nem.'
+              : 'Az adómentes térítés saját autóra a norma szerinti üzemanyag a havi NAV-áron, plusz 15 Ft/km: a kettő összege. A munkába járás és a magán km nincs benne.'
+          }</p>`
     }
     <p class="hash">Ellenőrző kód (SHA-256): ${esc(c.snapshot_hash)}</p>
     <div class="actions"><button class="primary" id="month-xlsx">Excel letöltése</button><button id="print">Nyomtatás / PDF</button></div>
@@ -544,9 +558,17 @@ function openBlock() {
   const text = todo.length || inApp
     ? [todo.length ? todo.join(', ') + '. Itt is rendezheted őket.' : '', inApp].filter(Boolean).join(' ')
     : ready ? 'Minden út a helyén: a lezárást a Riport fülön indíthatod az appban.' : 'A hónap utolsó napjától zárható le az appban.';
-  return `<div class="notice ${todo.length || inApp ? 'warn' : ''}" id="status">
+  // Nothing to do: no box, the state is a small label on the estimate card (statusLabel).
+  if (!todo.length && !inApp) return '';
+  return `<div class="notice warn" id="status">
     <p><b>${esc(head)}.</b> ${esc(text)}</p>
   </div>`;
+}
+
+/** The open month's state in two or three words, for the estimate card's label. */
+function statusLabel() {
+  if (reopened(state.month)) return 'Javításra újranyitva';
+  return closable(state.month) ? 'Lezárható az appban' : 'Folyamatban';
 }
 
 /** What a screen reader says for a row's checkbox: which trip it picks. */
@@ -556,11 +578,26 @@ const pickLabel = (t) => {
   return `Kijelölés: ${when} ${time(t.started_at)}, ${where}`;
 };
 
+/** A private trip whose addresses stay on the phone: one quiet line, nothing to decide here. */
+function compactTrip(t) {
+  const open = !t.locked;
+  const manual = t.distance_source === 'manual' ? ' <span class="muted small" title="Kézzel javított km">kézi</span>' : '';
+  return `<article class="trip compact" id="t-${esc(t.id)}">
+    <div class="c-pick"><span class="pick-space"></span></div>
+    <div class="c-main"><span class="when">${esc(time(t.started_at))}–${esc(time(t.ended_at))}</span><span class="route muted">${ICON.lock} Magánút</span>${open ? '<span class="saved muted small" aria-live="polite"></span>' : ''}</div>
+    <div class="c-km"><b class="trip-km">${km(kmOf(t.distance_m))}</b>${manual}</div>
+    <div class="c-cat"><span class="pill">Magán</span></div>
+    <div class="c-fields"></div>
+    <div class="c-edit">${open ? `<button class="icon" data-edit="${esc(t.id)}" aria-label="Km javítása" title="Km javítása">${ICON.edit}</button>` : '<span class="muted small">Lezárt</span>'}</div>
+  </article>`;
+}
+
 function tripCard(t, found = conflicts()) {
+  if (phoneOnly(t) && !conflictNote(t, found) && !state.overwritten.has(t.id)) return compactTrip(t);
   const priv = t.category === 'personal';
   const problem = t.locked ? null : conflictNote(t, found);
   const blank = noPlace(t);
-  const route = blank ? (priv ? 'Magánút' : 'Nincs cím: a ✎ gombbal adhatod meg') : `${esc(t.start_address || '–')} → ${esc(t.end_address || '–')}`;
+  const route = blank ? (priv ? 'Magánút' : 'Nincs cím: a szerkesztés gombbal adhatod meg') : `${esc(t.start_address || '–')} → ${esc(t.end_address || '–')}`;
   const open = !t.locked;
   // The label is the 44 px target around the small box.
   const pick = open ? `<label class="pick-hit"><input type="checkbox" class="pick" data-pick="${esc(t.id)}" aria-label="${esc(pickLabel(t))}"${state.selected.has(t.id) ? ' checked' : ''}></label>` : '<span class="pick-space"></span>';
@@ -577,7 +614,7 @@ function tripCard(t, found = conflicts()) {
       fields = `<div class="fields">
           <label><span>Cél</span><input data-field="purpose" data-id="${esc(t.id)}" value="${esc(t.purpose || '')}" maxlength="200" placeholder="pl. ügyféltárgyalás" list="dl-purpose"></label>
           <label><span>Partner</span><input data-field="partner_name" data-id="${esc(t.id)}" value="${esc(t.partner_name || '')}" maxlength="200" placeholder="pl. Alföld Kft." list="dl-partner"></label>
-        </div>${last ? `<button class="suggest" data-suggest="${esc(t.id)}" data-from="${esc(last.id)}">↺ Mint legutóbb: ${esc(last.purpose)} · ${esc(last.partner_name)}</button>` : ''}`;
+        </div>${last ? `<button class="suggest" data-suggest="${esc(t.id)}" data-from="${esc(last.id)}">${ICON.repeat} Mint legutóbb: ${esc(last.purpose)} · ${esc(last.partner_name)}</button>` : ''}`;
     }
   }
   const manual = t.distance_source === 'manual' ? ' <span class="muted small" title="Kézzel javított km">kézi</span>' : '';
@@ -587,13 +624,12 @@ function tripCard(t, found = conflicts()) {
       <span class="when">${esc(time(t.started_at))}–${esc(time(t.ended_at))}</span><span class="route${blank ? ' muted' : ''}">${route}</span>
       ${problem ? `<p class="small conflict">${esc(problem.text)}</p>` : ''}
       ${state.overwritten.has(t.id) ? '<p class="small conflict">Közben a telefonon is módosítottad ezt az utat, és az a változat maradt meg.</p>' : ''}
-      ${phoneOnly(t) && open ? '<p class="muted small phone-only">A magánút címe csak a telefonodon van, ezért üzletivé az appban teheted.</p>' : ''}
       ${open ? '<span class="saved muted small" aria-live="polite"></span>' : ''}
     </div>
     <div class="c-km"><b class="trip-km">${km(kmOf(t.distance_m))}</b>${manual}</div>
     <div class="c-cat">${segment}</div>
     <div class="c-fields">${fields}</div>
-    <div class="c-edit">${open ? `<button class="icon" data-edit="${esc(t.id)}" aria-label="Szerkesztés" title="Szerkesztés">✎</button>` : '<span class="muted small">Lezárt</span>'}</div>
+    <div class="c-edit">${open ? `<button class="icon" data-edit="${esc(t.id)}" aria-label="Szerkesztés" title="Szerkesztés">${ICON.edit}</button>` : '<span class="muted small">Lezárt</span>'}</div>
   </article>`;
 }
 
@@ -620,21 +656,29 @@ function tripList() {
     if (days[days.length - 1]?.day !== day) days.push({ day, trips: [] });
     days[days.length - 1].trips.push(t);
   }
-  const pickable = shown.filter((t) => !t.locked);
+  // Quiet private rows have no checkbox, so "all" doesn't pick them either.
+  const pickable = shown.filter((t) => !t.locked && !phoneOnly(t));
   const all = pickable.length && pickable.every((t) => state.selected.has(t.id));
   const head = `<div class="trip-head">
       <div class="c-pick">${pickable.length ? `<label class="pick-hit"><input type="checkbox" class="pick" id="pick-all" aria-label="Mind kijelölése"${all ? ' checked' : ''}></label>` : ''}</div>
       <div class="c-main">${pickable.length ? '<label class="only-phone" for="pick-all">Mind kijelölése</label>' : ''}<span class="only-wide">Út</span></div>
       <div class="c-km only-wide">Km</div><div class="c-cat only-wide">Kategória</div><div class="c-fields only-wide">Cél · Partner</div><div class="c-edit"></div>
     </div>`;
-  return `<div class="trips">${head}${days.map((d) => `<section class="day"><h3>${esc(d.day)}</h3>${d.trips.map((t) => tripCard(t, found)).join('')}</section>`).join('')}</div>`;
+  const privateNote = shown.some(phoneOnly)
+    ? `<p class="muted small private-note">${ICON.lock} A magánutak címe csak a telefonodon van: itt csak a km-jüket javíthatod, üzletivé az appban teheted őket.</p>`
+    : '';
+  // In "Mind", the trips that need something come first, under their own heading.
+  const todo = state.filter === 'all' ? shown.filter((t) => !t.locked && (t.category === 'unreviewed' || missing(t, found))) : [];
+  const todoBlock = todo.length ? `<section class="day day-todo"><h3>Teendő · ${todo.length} út</h3>${todo.map((t) => tripCard(t, found)).join('')}</section>` : '';
+  const rest = todo.length ? days.map((d) => ({ ...d, trips: d.trips.filter((t) => !todo.includes(t)) })).filter((d) => d.trips.length) : days;
+  return `${privateNote}<div class="trips">${head}${todoBlock}${rest.map((d) => `<section class="day"><h3>${esc(d.day)}</h3>${d.trips.map((t) => tripCard(t, found)).join('')}</section>`).join('')}</div>`;
 }
 
 function bulkBar() {
-  // One row on a phone: ✕, the count, then the actions (the long labels shorten there).
+  // One row on a phone: the close icon, the count, then the actions (the long labels shorten there).
   return `<div class="bulk" id="bulk" hidden>
     <div class="bulk-in">
-      <button class="icon bulk-close" data-bulk="clear" aria-label="Kijelölés megszüntetése" title="Mégse">✕</button>
+      <button class="icon bulk-close" data-bulk="clear" aria-label="Kijelölés megszüntetése" title="Mégse">${ICON.close}</button>
       <span class="bulk-count"><b id="bulk-n">0</b><span class="bulk-word"> kijelölve</span></span>
       <div class="bulk-actions">
         ${CATEGORIES.map(([value, label]) => `<button data-bulk="${value}">${label}</button>`).join('')}
@@ -760,7 +804,7 @@ function bindDashboard(close, yearCloses, year) {
   list.addEventListener('change', (e) => {
     const el = e.target;
     if (el.id === 'pick-all') {
-      for (const t of visibleTrips()) if (!t.locked) el.checked ? state.selected.add(t.id) : state.selected.delete(t.id);
+      for (const t of visibleTrips()) if (!t.locked && !phoneOnly(t)) el.checked ? state.selected.add(t.id) : state.selected.delete(t.id);
       renderTrips();
     } else if (el.dataset.pick) {
       el.checked ? state.selected.add(el.dataset.pick) : state.selected.delete(el.dataset.pick);
@@ -958,7 +1002,7 @@ function dialog(title, body, submitLabel, onSubmit) {
   const d = document.createElement('dialog');
   d.className = 'sheet-dialog';
   d.innerHTML = `<form method="dialog" class="dialog-form" novalidate>
-      <div class="dialog-head"><h2>${esc(title)}</h2><button type="button" class="icon" data-close aria-label="Bezárás">✕</button></div>
+      <div class="dialog-head"><h2>${esc(title)}</h2><button type="button" class="icon" data-close aria-label="Bezárás">${ICON.close}</button></div>
       <div class="dialog-body">${body}</div>
       <p class="error hidden" data-error></p>
       <div class="dialog-actions"><button type="button" data-close>Mégse</button><button class="primary" type="submit">${esc(submitLabel)}</button></div>

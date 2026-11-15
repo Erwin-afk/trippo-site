@@ -153,7 +153,7 @@ export function setupLogin({ send, verify, done }) {
     };
     otp = boxes(verifyCode);
 
-    const chip = el('button', { type: 'button', class: 'email-chip', 'aria-label': `${email}, e-mail-cím javítása` }, [el('span', { text: email }), el('span', { class: 'pencil', 'aria-hidden': 'true', text: '✎' })]);
+    const chip = el('button', { type: 'button', class: 'email-chip', 'aria-label': `${email}, e-mail-cím javítása` }, [el('span', { text: email }), pencilIcon()]);
     chip.addEventListener('click', showEmail);
 
     const checking = el('p', { class: 'checking hidden', text: 'Ellenőrzés…' });
@@ -236,4 +236,13 @@ export function setupLogin({ send, verify, done }) {
     if (err) return fail(err);
     showCode();
   });
+}
+
+/** The pencil on the e-mail chip, drawn in SVG (no emoji or symbol characters). */
+function pencilIcon() {
+  const span = document.createElement('span');
+  span.className = 'pencil';
+  span.setAttribute('aria-hidden', 'true');
+  span.innerHTML = '<svg class="ico" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>';
+  return span;
 }

@@ -2,8 +2,23 @@
   "applinks": {
     "details": [
       {
-        "appIDs": ["W23SW7YU7Y.com.erwin.trippo"],
-        "components": [{ "/": "/meghivo/*", "comment": "Accountant invites open the app; every other page stays on the web." }]
+        "appIDs": [
+          "W23SW7YU7Y.com.erwin.trippo"
+        ],
+        "components": [
+          {
+            "/": "/meghivo/*",
+            "comment": "Accountant invites open the app."
+          },
+          {
+            "/": "/app",
+            "comment": "Buttons in the driver e-mails open the app."
+          },
+          {
+            "/": "/app/*",
+            "comment": "Buttons in the driver e-mails open the app (e.g. /app/riport)."
+          }
+        ]
       }
     ]
   }
