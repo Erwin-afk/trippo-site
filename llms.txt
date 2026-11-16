@@ -5,13 +5,13 @@
 Key facts:
 - Platform: iPhone (iOS). The web account (trippo.hu/fiokom) shows trips on a computer; accountants get a free read-only portal (trippo.hu/konyvelo). Android is planned.
 - Status: the iPhone app is launching in 2026; the website takes sign-ups for the launch e-mail.
-- Price: 1 990 Ft per month or 19 900 Ft per year (Trippo Pro), with a 14-day free trial.
+- Price: recording and sorting trips are free; Trippo Pro is 1 990 Ft per month or 19 900 Ft per year, with a 14-day free trial.
 - Language: Hungarian. Made in Hungary, for Hungarian tax rules (SZJA tv., 60/1992. Korm. rendelet).
 - Automatic recording: trips start and stop on their own; the driver sorts each trip as business, private or commute with one swipe.
 - Reimbursement: fuel by the consumption norm at the monthly NAV fuel price, plus the 15 Ft/km general car cost, worked out per trip.
 - Month close: locks the month, adds the odometer reading, and sends the PDF and Excel to the accountant.
 - Also: the year-start and year-end odometer readings, several cars, receipts read from a photo, per-diem allowance, and Google Timeline import for past trips.
-- Privacy: location data is stored in the EU, never sold, and the account can be deleted from the app.
+- Privacy: data is stored in the EU and never sold; private trips' routes and addresses stay on the phone; the account can be deleted from the app.
 
 ## Main pages
 - [Trippo home](https://trippo.hu/): what the app does, prices, FAQ
