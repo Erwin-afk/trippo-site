@@ -48,6 +48,7 @@
     row.innerHTML = `<legend>${n}. út</legend>
       <label>Dátum<input type="date" name="date" value="${esc(t.date || '')}"></label>
       <label>Km<input name="km" inputmode="decimal" placeholder="pl. 42" value="${esc(t.km || '')}"></label>
+      <label class="wide">Időtartam<input name="time" placeholder="pl. 8:00–12:30" value="${esc(t.time || '')}"></label>
       <label class="wide">Honnan<input name="from" placeholder="pl. Budapest, Váci út 30." value="${esc(t.from || '')}"></label>
       <label class="wide">Hová<input name="to" placeholder="pl. Vác, Fő tér 1." value="${esc(t.to || '')}"></label>
       <label class="wide">Az út célja, partner<input name="purpose" placeholder="pl. tárgyalás, Minta Kft." value="${esc(t.purpose || '')}"></label>
@@ -79,7 +80,7 @@
     const price = row[COLUMN[fuel]];
     const trips = [...tripsBox.children].map((r) => {
       const v = (name) => r.querySelector(`[name="${name}"]`).value.trim();
-      return { date: v('date'), from: v('from'), to: v('to'), purpose: v('purpose'), kmText: v('km') };
+      return { date: v('date'), time: v('time'), from: v('from'), to: v('to'), purpose: v('purpose'), kmText: v('km') };
     }).filter((t) => t.date || t.from || t.to || t.purpose || t.kmText);
     const bad = trips.find((t) => parse(t.kmText) === null);
     const problem = !ccm || ccm > 9999 ? 'Írd be a hengerűrtartalmat számmal, pl. 1598. A forgalmi engedélyben találod.'
@@ -110,7 +111,7 @@
     const r = read();
     if (r.problem || !r.trips.length) return;
     const v = (id) => esc($(id).value.trim()) || '&nbsp;';
-    const rows = r.trips.map((t) => `<tr><td>${esc(t.date)}</td><td>${esc(t.from)}</td><td>${esc(t.to)}</td><td>${esc(t.purpose)}</td><td class="n">${grouped(t.km)}</td></tr>`).join('');
+    const rows = r.trips.map((t) => `<tr><td>${esc(t.date)}${t.time ? `<br>${esc(t.time)}` : ''}</td><td>${esc(t.from)}</td><td>${esc(t.to)}</td><td>${esc(t.purpose)}</td><td class="n">${grouped(t.km)}</td></tr>`).join('');
     $('rv-doc').innerHTML = `
       <h2>Kiküldetési rendelvény</h2>
       <p class="rv-sub">saját gépjármű hivatali, üzleti célú használatáról · ${esc(monthName(r.month))}</p>
@@ -120,7 +121,7 @@
         <tr><th>Kiküldött adóazonosító jele</th><td class="rv-blank">&nbsp;</td></tr>
         <tr><th>Gépjármű</th><td>${[$('rv-plate').value.trim(), $('rv-make').value.trim(), `${FUEL_NAME[r.fuel]}, ${grouped(r.ccm)} cm³`].filter(Boolean).map(esc).join(' · ')}</td></tr>
       </table>
-      <table class="rv-trips"><thead><tr><th>Dátum</th><th>Honnan</th><th>Hová</th><th>Az út célja, partner</th><th class="n">Km</th></tr></thead>
+      <table class="rv-trips"><thead><tr><th>Dátum, időtartam</th><th>Honnan</th><th>Hová</th><th>Az út célja, partner</th><th class="n">Km</th></tr></thead>
       <tbody>${rows}</tbody><tfoot><tr><td colspan="4">Összesen</td><td class="n">${grouped(r.km)}</td></tr></tfoot></table>
       <table class="rv-fields">
         <tr><th>Fogyasztási norma</th><td>${String(r.norm / 10).replace('.', ',')} l/100 km</td></tr>
