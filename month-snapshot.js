@@ -27,7 +27,8 @@ const dayHeader = (iso) => {
     const d = local(iso);
     return `${WEEKDAYS[d.weekday]}, ${MONTHS[d.monthIndex]} ${d.dayOfMonth}.`;
 };
-const placeName = (label) => (label.includes(' – ') ? label.split(' – ')[0] : label.split(',')[0]);
+/** As shortPlace in src/lib/report/model.ts: a saved place by its name, a bare address in full. */
+const placeName = (label) => (label.includes(' – ') ? label.split(' – ')[0] : label);
 const fuelCost = (km, dl, filler) => Math.floor((Math.round(km * dl * 10) * filler + 500000) / 1000000);
 /**
  * Szja tv. 3. sz. melléklet II. 4.: 3 l of ESZ 95 per 100 km; a plug-in gets 70% of its engine's norm.

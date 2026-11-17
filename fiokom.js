@@ -513,7 +513,7 @@ function closedBlock(c) {
   const money = [
     [`Üzemanyag (${km(s.business_km)} × ${esc(comma(s.norm_l_per_100km))} l/100 km × ${esc(s.price_label)})`, s.fuel_cost_huf],
     ...(s.usage === 'borrowed' ? [] : [[`Normaköltség (${km(s.business_km)} × ${esc(s.general_norm_huf_per_km)} Ft)`, s.amortization_huf]]),
-    ...(s.per_diem ? [[`Napidíj (${esc(s.per_diem.days.length)} nap × ${huf(s.per_diem.hufPerDay)})`, s.per_diem.totalHuf]] : []),
+    ...(s.per_diem ? [[`Napidíj, adóköteles (${esc(s.per_diem.days.length)} nap × ${huf(s.per_diem.hufPerDay)})`, s.per_diem.totalHuf]] : []),
     ...((s.expenses || []).length ? [[`Számla alapján (${esc(s.expenses.length)} tétel)`, s.expenses_huf]] : []),
   ];
   return `<div class="card closed">

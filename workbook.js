@@ -313,7 +313,7 @@ function summarySheet(c) {
     ft(`Üzemanyagköltség (${s.business_km ?? 0} km)`, s.fuel_cost_huf),
     ...(borrowed ? [] : [ft(`Normaköltség (${s.business_km ?? 0} km × ${s.general_norm_huf_per_km ?? 15} Ft)`, s.amortization_huf)]),
     ft('Költségtérítés', s.total_huf),
-    ...(s.per_diem ? [ft(`Napidíj (${s.per_diem.days?.length ?? 0} nap × ${s.per_diem.hufPerDay ?? 0} Ft)`, s.per_diem.totalHuf)] : []),
+    ...(s.per_diem ? [ft(`Napidíj, adóköteles (${s.per_diem.days?.length ?? 0} nap × ${s.per_diem.hufPerDay ?? 0} Ft)`, s.per_diem.totalHuf)] : []),
     ...(s.expenses?.length ? [ft(`Számla alapján (${s.expenses.length} tétel)`, s.expenses_huf)] : []),
     { cells: [] },
     section('Kilométerek'),
@@ -385,7 +385,7 @@ function costsSheet(closes, title) {
     }
     for (const day of s.per_diem?.days ?? []) {
       total += s.per_diem.hufPerDay ?? 0;
-      rows.push({ cells: [dateCell(day, c.month), ['Napidíj', 'cell'], ['legalább 6 órás kiküldetés', 'cell'], ['', 'cell'], [s.per_diem.hufPerDay ?? 0, 'cellInt']] });
+      rows.push({ cells: [dateCell(day, c.month), ['Napidíj', 'cell'], ['legalább 6 órás kiküldetés (adóköteles)', 'cell'], ['', 'cell'], [s.per_diem.hufPerDay ?? 0, 'cellInt']] });
     }
   }
   if (rows.length === 4) return null;
