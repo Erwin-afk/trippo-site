@@ -37,6 +37,64 @@ const kmOf = (m) => reportedKm(m ?? 0);
 const comma = (n) => String(n ?? '–').replace('.', ',');
 const on = (selector, event, fn) => document.querySelector(selector)?.addEventListener(event, fn);
 
+/** Google-encoded polyline (1e5), as the app stores routes. */
+function decodePolyline(str) {
+  const pts = [];
+  let i = 0;
+  let lat = 0;
+  let lng = 0;
+  const next = () => {
+    let shift = 0;
+    let result = 0;
+    let b;
+    do {
+      b = str.charCodeAt(i++) - 63;
+      result |= (b & 0x1f) << shift;
+      shift += 5;
+    } while (b >= 0x20 && i <= str.length);
+    return result & 1 ? ~(result >> 1) : result >> 1;
+  };
+  while (i < str.length) {
+    lat += next();
+    lng += next();
+    pts.push([lat / 1e5, lng / 1e5]);
+  }
+  return pts;
+}
+
+/** Category colours, as in the app: green business, amber commute, grey private. */
+const CAT_COLOR = { business: 'var(--cat-business)', commute: 'var(--cat-commute)', personal: 'var(--cat-personal)', unreviewed: 'var(--accent)' };
+
+/** A small drawing of the real route (north up, true shape) for a trip row; '' when there is no line. */
+function routeSketch(t) {
+  const encoded = t.details?.road_route || t.route_polyline;
+  let pts = encoded ? decodePolyline(encoded) : t.start_lat != null && t.end_lat != null ? [[t.start_lat, t.start_lng], [t.end_lat, t.end_lng]] : [];
+  if (pts.length < 2) return '';
+  // A trip that never moved has no shape to draw.
+  if (pts.every((q) => q[0] === pts[0][0] && q[1] === pts[0][1])) return '';
+  const step = Math.max(1, Math.ceil(pts.length / 80));
+  pts = pts.filter((_, i) => i % step === 0 || i === pts.length - 1);
+  const W = 72;
+  const H = 48;
+  const PAD = 7;
+  const k = Math.cos((pts.reduce((a, p) => a + p[0], 0) / pts.length) * (Math.PI / 180));
+  const xs = pts.map((p) => p[1] * k);
+  const ys = pts.map((p) => -p[0]);
+  const minX = Math.min(...xs);
+  const minY = Math.min(...ys);
+  const spanX = Math.max(...xs) - minX;
+  const spanY = Math.max(...ys) - minY;
+  const scale = spanX || spanY ? Math.min(spanX ? (W - 2 * PAD) / spanX : Infinity, spanY ? (H - 2 * PAD) / spanY : Infinity) : 0;
+  const ox = PAD + (W - 2 * PAD - spanX * scale) / 2;
+  const oy = PAD + (H - 2 * PAD - spanY * scale) / 2;
+  const xy = pts.map((_, i) => [ox + (xs[i] - minX) * scale, oy + (ys[i] - minY) * scale]);
+  const d = 'M' + xy.map(([x, y]) => `${x.toFixed(1)} ${y.toFixed(1)}`).join('L');
+  const [sx, sy] = xy[0];
+  const [ex, ey] = xy[xy.length - 1];
+  const color = CAT_COLOR[t.category] || 'var(--accent)';
+  return `<svg class="sketch" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" aria-hidden="true"><path d="${d}" fill="none" stroke="${color}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><circle cx="${sx.toFixed(1)}" cy="${sy.toFixed(1)}" r="2.6" fill="var(--muted)"/><circle cx="${ex.toFixed(1)}" cy="${ey.toFixed(1)}" r="3.4" fill="${color}"/></svg>`;
+}
+
 const CATEGORIES = [
   ['business', 'Üzleti'],
   ['personal', 'Magán'],
@@ -45,7 +103,7 @@ const CATEGORIES = [
 const LABEL = { business: 'Üzleti', personal: 'Magán', commute: 'Munkába járás', unreviewed: 'Döntésre vár' };
 /** What a private trip may keep on the server (the privacy policy; the database enforces it too). */
 const PRIVATE_DETAIL_KEYS = ['road_route', 'stops', 'gaps', 'start_fill', 'note'];
-const TRIP_COLUMNS = 'id, client_id, vehicle_id, started_at, ended_at, start_address, end_address, start_lat, start_lng, end_lat, end_lng, distance_m, distance_source, gps_distance_m, category, purpose, partner_name, locked, details, updated_at';
+const TRIP_COLUMNS = 'id, client_id, vehicle_id, started_at, ended_at, start_address, end_address, start_lat, start_lng, end_lat, end_lng, route_polyline, distance_m, distance_source, gps_distance_m, category, purpose, partner_name, locked, details, updated_at';
 /** What turning a trip private wipes on the server (see categoryPatch): kept in the browser for the undo. */
 const UNDO_COLUMNS = ['category', 'start_lat', 'start_lng', 'end_lat', 'end_lng', 'start_address', 'end_address', 'route_polyline', 'purpose', 'partner_name', 'details'];
 /** Fuel → the NAV price list it uses (as in the close-month function). */
@@ -262,10 +320,18 @@ const demo = (() => {
   const prev = shift(month, -1);
   const [day1, day2, day3] = early ? [26, 27, 28] : [now.getDate() - 3, now.getDate() - 2, now.getDate() - 1];
   const at = (m, day, h, min) => new Date(`${m}-${String(day).padStart(2, '0')}T${String(h).padStart(2, '0')}:${String(min).padStart(2, '0')}:00`).toISOString();
+  // Where the sample addresses are, so their route sketches have a real shape.
+  const PLACE = {
+    'Budaörs, Szabadság út 1.': [47.4613, 18.9583],
+    'Budaörs, Templom tér 3.': [47.4627, 18.9642],
+    'Budapest, Váci út 30.': [47.5231, 19.0646],
+    'Kecskemét, Kossuth tér 1.': [46.9073, 19.6917],
+    'Győr, Baross Gábor út 12.': [47.6857, 17.6339],
+  };
   const trip = (id, m, day, h, min, dur, from, to, kmv, category, purpose, partner, locked = false) => ({
     id, client_id: id, vehicle_id: 'demo-car', started_at: at(m, day, h, min), ended_at: new Date(new Date(at(m, day, h, min)).getTime() + dur * 60000).toISOString(),
     start_address: category === 'personal' ? null : from, end_address: category === 'personal' ? null : to,
-    start_lat: category === 'personal' ? null : 47.5, end_lat: category === 'personal' ? null : 47.5,
+    ...(category === 'personal' ? { start_lat: null, start_lng: null, end_lat: null, end_lng: null } : { start_lat: PLACE[from][0], start_lng: PLACE[from][1], end_lat: PLACE[to][0], end_lng: PLACE[to][1] }),
     distance_m: kmv * 1000, distance_source: null, gps_distance_m: null, category, purpose, partner_name: partner, locked, details: null,
   });
   const trips = [
@@ -278,6 +344,7 @@ const demo = (() => {
     trip('d7', month, day1, 17, 0, 80, 'Győr, Baross Gábor út 12.', 'Budaörs, Szabadság út 1.', 113, 'unreviewed', null, null),
     trip('d8', month, day2, 10, 0, 20, 'Budaörs, Szabadság út 1.', 'Budaörs, Templom tér 3.', 4, 'unreviewed', null, null),
     trip('d9', month, day2, 18, 30, 15, null, null, 6, 'personal', null, null),
+    trip('d11', month, day2, 19, 40, 25, null, null, 11, 'personal', null, null),
     trip('d10', month, day3, 9, 10, 70, 'Budaörs, Szabadság út 1.', 'Kecskemét, Kossuth tér 1.', 88, 'business', null, null),
   ];
   const byTime = (list) => list.map((t) => ({ ...t })).sort((a, b) => a.started_at.localeCompare(b.started_at));
@@ -468,10 +535,8 @@ function estimateBlock() {
         ...(s.usage === 'borrowed' ? [] : [[`Normaköltség (${km(s.business_km)} × ${esc(s.general_norm_huf_per_km)} Ft)`, huf(s.amortization_huf)]]),
         ...(s.expenses.length ? [[`Számla alapján (${esc(s.expenses.length)} tétel)`, huf(s.expenses_huf)]] : []),
       ];
-  const big = isShareLog(s) ? `${esc(comma(s.business_share_pct))} %` : `≈ ${huf(payableOf(s))}`;
   return `<div class="card estimate" id="estimate">
     <div class="estimate-head"><b>${isShareLog(s) ? 'Üzleti arány eddig' : 'Becsült elszámolás'}</b><span class="pill${closable(state.month) ? ' ok' : ''}">${esc(statusLabel())}</span></div>
-    <p class="estimate-big">${big}</p>
     <table class="calc"><tbody>${rows.map(([label, value]) => `<tr><td>${label}</td><td class="num">${value}</td></tr>`).join('')}</tbody></table>
     <p class="muted small">Becslés a mostani utakból${waiting ? `, a döntésre váró ${waiting} út nélkül` : ''}. A napidíj és a végleges összeg a lezáráskor dől el az appban.</p>
     <div class="actions"><button id="draft-xlsx">Piszkozat Excelben</button></div>
@@ -496,16 +561,96 @@ function whoBar(email) {
   });
 }
 
-function statsBlock() {
+/** The month at a glance: km split by category in one bar, the money, and a calendar of the days. */
+function monthBlock() {
   const sum = (cat) => state.trips.filter((t) => t.category === cat).reduce((a, t) => a + kmOf(t.distance_m), 0);
+  const parts = [['business', 'Üzleti'], ['commute', 'Munkába járás'], ['personal', 'Magán'], ['unreviewed', 'Döntésre vár']].map(([c, label]) => ({ c, label, km: sum(c) }));
+  const total = parts.reduce((a, p) => a + p.km, 0);
   const waiting = state.trips.filter((t) => t.category === 'unreviewed').length;
-  // "Döntésre vár" only when something waits: a big 0 says nothing.
-  return `<div class="stats ${waiting ? 'four' : 'three'}">
-    <div class="stat"><b>${km(sum('business'))}</b><span>Üzleti</span></div>
-    <div class="stat"><b>${km(sum('personal'))}</b><span>Magán</span></div>
-    <div class="stat"><b>${km(sum('commute'))}</b><span>Munkába járás</span></div>
-    ${waiting ? `<div class="stat alert"><b>${waiting}</b><span>Döntésre vár</span></div>` : ''}
+  const close = activeClose(state.month);
+  const snap = close ? close.snapshot || {} : state.trips.length ? estimate() : null;
+  const share = snap && isShareLog(snap);
+  const money = !snap ? '' : share ? `${esc(comma(snap.business_share_pct))} %` : `${close ? '' : '≈ '}${huf(payableOf(snap))}`;
+  const moneyLabel = !snap ? '' : share ? 'üzleti arány' : close ? 'kifizetendő, lezárva' : 'becsült térítés eddig';
+  const shown = parts.filter((p) => p.km > 0);
+  const bar = total
+    ? `<div class="mbar" role="img" aria-label="${esc(shown.map((p) => `${p.label} ${km(p.km)}`).join(', '))}">${shown.map((p) => `<span class="seg-${p.c}" data-flex="${p.km}"></span>`).join('')}</div>`
+    : '<div class="mbar empty"></div>';
+  const legend = shown.map((p) => `<span class="lg"><i class="dot seg-${p.c}"></i>${esc(p.label)} <b>${km(p.km)}</b></span>`).join('');
+  return `<div class="card month-card">
+    <div class="m-sum">
+      <div class="m-top">
+        <div><b class="m-km">${km(total)}</b><span class="muted"> · ${state.trips.length} út</span></div>
+        ${money ? `<div class="m-money"><b>${money}</b><span class="muted small">${esc(moneyLabel)}</span></div>` : ''}
+      </div>
+      ${bar}
+      <div class="legend">${legend || '<span class="muted small">Ebben a hónapban még nincs út.</span>'}</div>
+      ${waiting ? `<p class="m-wait small">${waiting} út vár döntésre: lent, a Teendő alatt rendezheted.</p>` : ''}
+    </div>
+    ${calendar()}
   </div>`;
+}
+
+/** Each day of the month, shaded by business km; a dot where something needs fixing. Click: jump there. */
+function calendar() {
+  const first = monthStart(state.month);
+  const days = new Date(first.getFullYear(), first.getMonth() + 1, 0).getDate();
+  const found = conflicts();
+  const byDay = new Map();
+  for (const t of state.trips) {
+    const key = ymd(new Date(t.started_at));
+    const d = byDay.get(key) ?? { biz: 0, all: 0, todo: false };
+    d.all += kmOf(t.distance_m);
+    if (t.category === 'business') d.biz += kmOf(t.distance_m);
+    if (!t.locked && (t.category === 'unreviewed' || missing(t, found))) d.todo = true;
+    byDay.set(key, d);
+  }
+  const maxBiz = Math.max(1, ...[...byDay.values()].map((d) => d.biz));
+  const today = ymd(new Date());
+  const lead = (first.getDay() + 6) % 7;
+  const cells = [];
+  for (let i = 0; i < lead; i++) cells.push('<span class="cal-cell blank"></span>');
+  for (let n = 1; n <= days; n++) {
+    const key = `${state.month}-${String(n).padStart(2, '0')}`;
+    const d = byDay.get(key);
+    const cls = `cal-cell${key === today ? ' today' : ''}${d?.todo ? ' todo' : ''}${d && !d.biz ? ' other' : ''}`;
+    // Business km tint the day: the busiest day is full green.
+    const tint = d?.biz ? ` data-tint="${Math.round(18 + (d.biz / maxBiz) * 72)}%"` : '';
+    const title = d ? `${n}.: ${km(d.all)}${d.biz ? `, ebből üzleti ${km(d.biz)}` : ''}${d.todo ? ', teendő van' : ''}` : '';
+    cells.push(
+      d
+        ? `<button class="${cls}${d.biz ? ' biz' : ''}" data-day="${key}"${tint} title="${esc(title)}" aria-label="${esc(title)}">${n}</button>`
+        : `<span class="${cls}">${n}</span>`,
+    );
+  }
+  return `<div class="cal" id="cal" role="group" aria-label="A hónap napjai">
+    <div class="cal-head" aria-hidden="true">${['H', 'K', 'Sze', 'Cs', 'P', 'Szo', 'V'].map((w) => `<span>${w}</span>`).join('')}</div>
+    <div class="cal-grid">${cells.join('')}</div>
+  </div>`;
+}
+
+/** Calendar clicks scroll to that day in the list (switching to "Mind" if the filter hides it). */
+function bindCalendar() {
+  // Sizes and shades go in through the CSSOM: the page's CSP blocks style="" attributes.
+  document.querySelectorAll('.month-card [data-flex]').forEach((el) => (el.style.flex = `${el.dataset.flex} 1 0`));
+  document.querySelectorAll('.month-card [data-tint]').forEach((el) => el.style.setProperty('--tint', el.dataset.tint));
+  on('#cal', 'click', (e) => {
+    const day = e.target.closest('[data-day]')?.dataset.day;
+    if (!day) return;
+    let target = document.getElementById(`day-${day}`);
+    if (!target && state.filter !== 'all') {
+      state.filter = 'all';
+      document.querySelectorAll('[data-filter]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.filter === 'all')));
+      renderTrips();
+      target = document.getElementById(`day-${day}`);
+    }
+    // A day whose trips all wait is shown under Teendő.
+    target = target ?? document.querySelector('.day-todo');
+    if (!target) return;
+    target.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
+    target.classList.add('flash');
+    setTimeout(() => target.classList.remove('flash'), 1200);
+  });
 }
 
 function closedBlock(c) {
@@ -621,7 +766,7 @@ function tripCard(t, found = conflicts()) {
   return `<article class="trip${t.category === 'unreviewed' ? ' waiting' : ''}${missing(t, found) && open ? ' missing' : ''}${state.selected.has(t.id) ? ' picked' : ''}" id="t-${esc(t.id)}">
     <div class="c-pick">${pick}</div>
     <div class="c-main">
-      <span class="when">${esc(time(t.started_at))}–${esc(time(t.ended_at))}</span><span class="route${blank ? ' muted' : ''}">${route}</span>
+      <div class="main-row">${priv ? '' : routeSketch(t)}<div class="main-text"><span class="when">${esc(time(t.started_at))}–${esc(time(t.ended_at))}</span><span class="route${blank ? ' muted' : ''}">${route}</span></div></div>
       ${problem ? `<p class="small conflict">${esc(problem.text)}</p>` : ''}
       ${state.overwritten.has(t.id) ? '<p class="small conflict">Közben a telefonon is módosítottad ezt az utat, és az a változat maradt meg.</p>' : ''}
       ${open ? '<span class="saved muted small" aria-live="polite"></span>' : ''}
@@ -653,7 +798,7 @@ function tripList() {
   const days = [];
   for (const t of shown) {
     const day = dayName(t.started_at);
-    if (days[days.length - 1]?.day !== day) days.push({ day, trips: [] });
+    if (days[days.length - 1]?.day !== day) days.push({ day, key: ymd(new Date(t.started_at)), trips: [] });
     days[days.length - 1].trips.push(t);
   }
   // Quiet private rows have no checkbox, so "all" doesn't pick them either.
@@ -671,7 +816,16 @@ function tripList() {
   const todo = state.filter === 'all' ? shown.filter((t) => !t.locked && (t.category === 'unreviewed' || missing(t, found))) : [];
   const todoBlock = todo.length ? `<section class="day day-todo"><h3>Teendő · ${todo.length} út</h3>${todo.map((t) => tripCard(t, found)).join('')}</section>` : '';
   const rest = todo.length ? days.map((d) => ({ ...d, trips: d.trips.filter((t) => !todo.includes(t)) })).filter((d) => d.trips.length) : days;
-  return `${privateNote}<div class="trips">${head}${todoBlock}${rest.map((d) => `<section class="day"><h3>${esc(d.day)}</h3>${d.trips.map((t) => tripCard(t, found)).join('')}</section>`).join('')}</div>`;
+  // Two or more quiet private trips on a day fold into one line: they need nothing from the driver.
+  const quiet = (t) => phoneOnly(t) && !conflictNote(t, found) && !state.overwritten.has(t.id);
+  const dayBody = (d) => {
+    const folded = d.trips.filter(quiet);
+    if (folded.length < 2) return d.trips.map((t) => tripCard(t, found)).join('');
+    const sumKm = folded.reduce((a, t) => a + kmOf(t.distance_m), 0);
+    const fold = `<details class="priv-fold"><summary><span class="pf-ico">${ICON.lock}</span><span class="pf-label">${folded.length} magánút</span><b class="trip-km">${km(sumKm)}</b><span class="pf-more muted small">Megnyitás</span></summary>${folded.map((t) => tripCard(t, found)).join('')}</details>`;
+    return d.trips.filter((t) => !quiet(t)).map((t) => tripCard(t, found)).join('') + fold;
+  };
+  return `${privateNote}<div class="trips">${head}${todoBlock}${rest.map((d) => `<section class="day" id="day-${d.key}"><h3>${esc(d.day)}</h3>${dayBody(d)}</section>`).join('')}</div>`;
 }
 
 function bulkBar() {
@@ -706,7 +860,7 @@ function dashboard() {
         <div class="month-nav"><button id="prev" aria-label="Előző hónap">‹</button><b>${esc(monthName(state.month))}</b><button id="next" aria-label="Következő hónap"${state.month >= ym(new Date()) ? ' disabled' : ''}>›</button></div>
       </div>
     </div>
-    ${statsBlock()}
+    ${monthBlock()}
     ${close ? closedBlock(close) : `<div class="side">${openBlock()}${estimateBlock()}</div>`}
     <div class="tools">
       <div class="filter">${filters.map(([v, l]) => `<button data-filter="${v}" aria-pressed="${state.filter === v}">${l}</button>`).join('')}</div>
@@ -720,11 +874,13 @@ function dashboard() {
     <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
   `);
   bindDashboard(close, yearCloses, year);
+  bindCalendar();
 }
 
 /** Totals, the status line and the estimate follow every change. */
 function refreshSide() {
-  document.querySelector('.stats').outerHTML = statsBlock();
+  document.querySelector('.month-card').outerHTML = monthBlock();
+  bindCalendar();
   if (activeClose(state.month)) return;
   const side = document.querySelector('.side');
   if (side) side.innerHTML = openBlock() + estimateBlock();

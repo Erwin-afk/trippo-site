@@ -95,7 +95,7 @@ input.pick { width: 20px; height: 20px; margin: 0; padding: 0; accent-color: var
   .only-phone { display: none; }
   .trips { background: var(--card); border: 1px solid var(--line); border-radius: 16px; overflow: hidden; }
   .trip-head, .trip {
-    display: grid; grid-template-columns: 22px minmax(0, 1.25fr) 72px 236px minmax(0, 1.6fr) 44px; column-gap: 14px;
+    display: grid; grid-template-columns: 22px minmax(0, 1.7fr) 72px 236px minmax(0, 1.3fr) 44px; column-gap: 14px;
     grid-template-areas: "pick main km cat fields edit"; align-items: center;
   }
   .trip-head { padding: 10px 16px; font-size: 13px; font-weight: 600; border-bottom: 1px solid var(--line); }
@@ -212,3 +212,77 @@ body.has-bulk .toast { bottom: 96px; }
 .ico { display: inline-block; vertical-align: -3px; flex: none; }
 button.icon .ico { vertical-align: middle; }
 .private-note .ico, .trip.compact .route .ico { vertical-align: -2px; }
+
+/* Month card: one bar split by category, the money, and the month's days. Category colours as in the app. */
+:root { --cat-business: #077a5a; --cat-commute: #ad6200; --cat-personal: #8a94a1; }
+@media (prefers-color-scheme: dark) { :root { --cat-business: #3ddc97; --cat-commute: #ffb224; --cat-personal: #6d7684; } }
+.month-card { display: grid; grid-template-columns: minmax(0, 1fr) 260px; gap: 28px; align-items: start; padding: 20px 22px; margin: 0 0 16px; }
+.m-top { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; }
+.m-km { font-size: 34px; font-weight: 800; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+.m-money { text-align: right; display: grid; }
+.m-money b { font-size: 26px; font-weight: 800; color: var(--accent); font-variant-numeric: tabular-nums; }
+.mbar { display: flex; height: 14px; border-radius: 999px; overflow: hidden; margin: 16px 0 12px; background: var(--line); }
+.mbar span { min-width: 4px; }
+.seg-business { background: var(--cat-business); }
+.seg-commute { background: var(--cat-commute); }
+.seg-personal { background: var(--cat-personal); }
+/* Waiting km: the decision is still open, so the bar shows a gap with a border, not a colour. */
+.seg-unreviewed { background: repeating-linear-gradient(135deg, transparent 0 5px, color-mix(in srgb, var(--accent) 45%, transparent) 5px 7px); }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 14px; color: var(--muted); }
+.legend .lg { display: inline-flex; align-items: center; gap: 7px; }
+.legend b { color: var(--text); font-variant-numeric: tabular-nums; }
+.legend .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+.legend .dot.seg-unreviewed { box-shadow: inset 0 0 0 2px var(--accent); }
+.m-wait { margin: 12px 0 0; color: #d98a00; font-weight: 600; }
+
+.cal-head, .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+.cal-head span { font-size: 11px; color: var(--muted); text-align: center; padding-bottom: 2px; }
+.cal-cell { position: relative; aspect-ratio: 1; display: grid; place-items: center; font: inherit; font-size: 12px; font-variant-numeric: tabular-nums; color: var(--muted); border: 0; border-radius: 8px; background: none; padding: 0; min-width: 0; }
+.cal-cell.blank { visibility: hidden; }
+button.cal-cell { cursor: pointer; color: var(--text); background: color-mix(in srgb, var(--line) 70%, transparent); }
+button.cal-cell.biz { background: color-mix(in srgb, var(--cat-business) var(--tint), var(--card)); font-weight: 700; }
+button.cal-cell:hover { outline: 2px solid var(--accent); outline-offset: -2px; }
+button.cal-cell:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.cal-cell.today { box-shadow: inset 0 0 0 2px var(--text); }
+.cal-cell.todo::after { content: ""; position: absolute; top: 3px; right: 3px; width: 6px; height: 6px; border-radius: 50%; background: #d98a00; }
+
+/* Trip rows: a small sketch of the real route next to the time and the addresses. */
+.main-row { display: flex; align-items: center; gap: 12px; }
+.main-text { min-width: 0; }
+.sketch { flex: none; width: 60px; height: 40px; border-radius: 10px; background: color-mix(in srgb, var(--line) 55%, transparent); }
+
+/* Private trips of a day fold into one line. */
+.priv-fold { border-bottom: 1px solid var(--line); }
+.priv-fold > summary { list-style: none; cursor: pointer; display: grid; grid-template-columns: 22px minmax(0, 1fr) auto auto; align-items: center; gap: 14px; padding: 10px 16px; min-height: 44px; color: var(--muted); }
+/* On wide screens the folded line uses the trip table's columns, so its km sits under the km column. */
+@media (min-width: 960px) { .priv-fold > summary { grid-template-columns: 22px minmax(0, 1.7fr) 72px 236px minmax(0, 1.3fr) 44px; } .priv-fold .trip-km { text-align: right; } }
+.priv-fold > summary::-webkit-details-marker { display: none; }
+.priv-fold > summary:hover { background: color-mix(in srgb, var(--line) 35%, transparent); }
+.priv-fold > summary:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.priv-fold .pf-ico { display: inline-flex; }
+.priv-fold .trip-km { color: var(--text); }
+.priv-fold[open] .pf-more { visibility: hidden; }
+.priv-fold[open] > summary { border-bottom: 1px solid var(--line); }
+.day:last-child .priv-fold:last-child { border-bottom: 0; }
+
+/* The day a calendar click jumps to blinks once. */
+.day.flash > h3 { background: color-mix(in srgb, var(--accent) 22%, var(--bg)); transition: background .25s ease; }
+
+@media (max-width: 760px) {
+  .month-card { grid-template-columns: 1fr; gap: 18px; padding: 18px; }
+  .cal { max-width: 300px; }
+  .cal-cell { border-radius: 6px; }
+  .m-km { font-size: 28px; }
+  .m-money b { font-size: 22px; }
+  .sketch { width: 56px; height: 38px; }
+}
+/* Below the table layout trips are cards, and the folded line is a card too. */
+@media (max-width: 959px) {
+  .priv-fold { border: 1px solid var(--line); border-radius: 14px; margin-bottom: 8px; background: var(--card); }
+  .priv-fold > summary { padding: 10px 14px; grid-template-columns: 22px minmax(0, 1fr) auto; }
+  .priv-fold .pf-more { display: none; }
+  .priv-fold[open] { padding: 0 8px 8px; }
+}
+/* On a narrow phone the addresses need the room more than the sketch does. */
+@media (max-width: 479px) { .trip .sketch { display: none; } }
+@media print { .cal, .pf-more { display: none !important; } .priv-fold { display: block; } }
