@@ -130,3 +130,49 @@ document.addEventListener('DOMContentLoaded', () => {
     paint();
   });
 });
+
+/* "Nézz bele az appba": tabs swap the phone screen. Arrow keys move between tabs (WAI-ARIA tabs pattern). */
+(() => {
+  const init = () => {
+    const tabs = [...document.querySelectorAll('.shot-tabs [role="tab"]')];
+    const img = document.getElementById('shot-img');
+    const panel = document.getElementById('shot-panel');
+    if (!tabs.length || !img || !panel) return;
+    const select = (tab, focus) => {
+      for (const t of tabs) {
+        const on = t === tab;
+        t.setAttribute('aria-selected', String(on));
+        t.tabIndex = on ? 0 : -1;
+      }
+      panel.setAttribute('aria-labelledby', tab.id);
+      const caption = document.getElementById('shot-caption');
+      if (caption) caption.textContent = tab.querySelector('span')?.textContent ?? '';
+      if (img.getAttribute('src') !== tab.dataset.src) {
+        img.classList.add('swap');
+        const next = new Image();
+        next.onload = next.onerror = () => {
+          img.src = tab.dataset.src;
+          img.alt = tab.dataset.alt;
+          requestAnimationFrame(() => img.classList.remove('swap'));
+        };
+        next.src = tab.dataset.src;
+      }
+      if (focus) tab.focus();
+    };
+    tabs.forEach((tab, i) => {
+      tab.addEventListener('click', () => select(tab, false));
+      tab.addEventListener('keydown', (e) => {
+        const step = { ArrowDown: 1, ArrowRight: 1, ArrowUp: -1, ArrowLeft: -1 }[e.key];
+        if (e.key === 'Home' || e.key === 'End') {
+          e.preventDefault();
+          select(tabs[e.key === 'Home' ? 0 : tabs.length - 1], true);
+        } else if (step) {
+          e.preventDefault();
+          select(tabs[(i + step + tabs.length) % tabs.length], true);
+        }
+      });
+    });
+  };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+  else init();
+})();
