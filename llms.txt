@@ -9,9 +9,10 @@ Key facts:
 - Language: Hungarian. Made in Hungary, for Hungarian tax rules (SZJA tv., 60/1992. Korm. rendelet).
 - Automatic recording: trips start and stop on their own; the driver sorts each trip as business, private or commute with one swipe.
 - Reimbursement: fuel by the consumption norm at the monthly NAV fuel price, plus the 15 Ft/km general car cost, worked out per trip.
-- Month close: locks the month, adds the odometer reading, and sends the PDF and Excel to the accountant.
+- Month close: locks the month with a check code, adds the odometer reading, and sends the PDF and Excel to the accountant. If the accountant finds a mistake, the driver reopens the month in the app, fixes it and closes it again; every change shows in the change log and the accountant portal.
 - Also: the year-start and year-end odometer readings, several cars, receipts read from a photo, per-diem allowance, and Google Timeline import for past trips.
-- Privacy: data is stored in the EU and never sold; private trips' routes and addresses stay on the phone; the account can be deleted from the app.
+- Privacy: data is stored in the EU and never sold; private trips' routes and addresses stay on the phone, while their km and times are kept in the account, so a new phone loses nothing the log needs; the account can be deleted from the app.
+- Recording: runs in the background with location access set to "Always". If the driver swipes the app away, iOS stops recording until it is opened again; Trippo warns after three days without trips, and missed days can be filled from regular routes or Google Timeline.
 
 ## Main pages
 - [Trippo home](https://trippo.hu/): what the app does, prices, FAQ
