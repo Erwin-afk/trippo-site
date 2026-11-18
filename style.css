@@ -321,7 +321,7 @@ main.landing { max-width: none; padding: 0; }
 .press-grid figcaption { font-size: 14px; margin-top: 6px; color: var(--muted); }
 
 /* Home: four facts under the hero, divided by hairlines (a flat band, not cards). */
-.facts { border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); background: var(--card); }
+.facts-band { border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); background: var(--card); }
 .facts-list { list-style: none; margin: 0 auto; display: grid; grid-template-columns: repeat(4, 1fr); }
 .facts-list li { display: grid; grid-template-columns: auto 1fr; column-gap: 12px; align-content: start; padding: 22px 20px; border-left: 1px solid var(--line); }
 .facts-list li:first-child { border-left: 0; padding-left: 0; }
