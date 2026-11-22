@@ -63,7 +63,7 @@ function decodePolyline(str) {
 }
 
 /** Category colours, as in the app: green business, amber commute, grey private. */
-const CAT_COLOR = { business: 'var(--cat-business)', commute: 'var(--cat-commute)', personal: 'var(--cat-personal)', unreviewed: 'var(--accent)' };
+const CAT_COLOR = { business: 'var(--cat-business)', commute: 'var(--cat-commute)', personal: 'var(--cat-personal)', unreviewed: 'var(--cat-unreviewed)' };
 
 /** A small drawing of the real route (north up, true shape) for a trip row; '' when there is no line. */
 function routeSketch(t) {

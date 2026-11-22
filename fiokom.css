@@ -50,7 +50,7 @@ select { font: inherit; font-size: 15px; padding: 10px 12px; border: 1px solid v
   grid-template-areas: "pick main km" "cat cat edit" "fields fields fields";
   background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; margin-bottom: 8px;
 }
-.trip.waiting { border-color: var(--accent); }
+.trip.waiting { border-color: var(--cat-unreviewed); }
 .trip.missing { border-color: #d98a00; }
 .trip.picked { box-shadow: inset 0 0 0 2px var(--accent); }
 .c-pick { grid-area: pick; padding-top: 2px; }
@@ -103,7 +103,7 @@ input.pick { width: 20px; height: 20px; margin: 0; padding: 0; accent-color: var
   .day h3 { margin: 0; padding: 8px 16px; background: var(--bg); border-bottom: 1px solid var(--line); font-size: 13px; }
   .trip { border: 0; border-bottom: 1px solid var(--line); border-radius: 0; margin: 0; padding: 10px 16px; }
   .day:last-child .trip:last-child { border-bottom: 0; }
-  .trip.waiting { box-shadow: inset 3px 0 0 var(--accent); border-color: var(--line); }
+  .trip.waiting { box-shadow: inset 3px 0 0 var(--cat-unreviewed); border-color: var(--line); }
   .trip.missing { box-shadow: inset 3px 0 0 #d98a00; border-color: var(--line); }
   .trip.picked { box-shadow: none; background: color-mix(in srgb, var(--accent) 9%, var(--card)); }
   .c-pick { padding: 0; }
@@ -214,8 +214,8 @@ button.icon .ico { vertical-align: middle; }
 .private-note .ico, .trip.compact .route .ico { vertical-align: -2px; }
 
 /* Month card: one bar split by category, the money, and the month's days. Category colours as in the app. */
-:root { --cat-business: #077a5a; --cat-commute: #ad6200; --cat-personal: #8a94a1; }
-@media (prefers-color-scheme: dark) { :root { --cat-business: #3ddc97; --cat-commute: #ffb224; --cat-personal: #6d7684; } }
+:root { --cat-business: #077a5a; --cat-commute: #ad6200; --cat-personal: #8a94a1; --cat-unreviewed: #1d5fd0; }
+@media (prefers-color-scheme: dark) { :root { --cat-business: #3ddc97; --cat-commute: #ffb224; --cat-personal: #6d7684; --cat-unreviewed: #5aa9ff; } }
 .month-card { display: grid; grid-template-columns: minmax(0, 1fr) 260px; gap: 28px; align-items: start; padding: 20px 22px; margin: 0 0 16px; }
 .m-top { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; }
 .m-km { font-size: 34px; font-weight: 800; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
@@ -227,12 +227,12 @@ button.icon .ico { vertical-align: middle; }
 .seg-commute { background: var(--cat-commute); }
 .seg-personal { background: var(--cat-personal); }
 /* Waiting km: the decision is still open, so the bar shows a gap with a border, not a colour. */
-.seg-unreviewed { background: repeating-linear-gradient(135deg, transparent 0 5px, color-mix(in srgb, var(--accent) 45%, transparent) 5px 7px); }
+.seg-unreviewed { background: repeating-linear-gradient(135deg, color-mix(in srgb, var(--cat-unreviewed) 35%, transparent) 0 5px, var(--cat-unreviewed) 5px 7px); }
 .legend { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 14px; color: var(--muted); }
 .legend .lg { display: inline-flex; align-items: center; gap: 7px; }
 .legend b { color: var(--text); font-variant-numeric: tabular-nums; }
 .legend .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
-.legend .dot.seg-unreviewed { box-shadow: inset 0 0 0 2px var(--accent); }
+.legend .dot.seg-unreviewed { box-shadow: inset 0 0 0 2px var(--cat-unreviewed); }
 .m-wait { margin: 12px 0 0; color: #d98a00; font-weight: 600; }
 
 .cal-head, .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
