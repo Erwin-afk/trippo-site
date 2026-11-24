@@ -4,7 +4,7 @@
 
 Key facts:
 - Platform: iPhone (iOS). The web account (trippo.hu/fiokom) shows trips on a computer; accountants get a free read-only portal (trippo.hu/konyvelo). Android is planned.
-- Status: the iPhone app is launching in 2026; the website takes sign-ups for the launch e-mail.
+- Status: available on the App Store for iPhone: https://apps.apple.com/hu/app/id6825511759
 - Price: recording and sorting trips are free; Trippo Pro is 1 990 Ft per month or 19 900 Ft per year, with a 14-day free trial.
 - Language: Hungarian. Made in Hungary, for Hungarian tax rules (SZJA tv., 60/1992. Korm. rendelet).
 - Automatic recording: trips start and stop on their own; the driver sorts each trip as business, private or commute with one swipe.
