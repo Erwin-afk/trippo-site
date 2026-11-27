@@ -4,6 +4,7 @@
 // NAV price per litre: petrol, diesel (the protected price where one applied), LPG. Newest first.
 // Printed fallback; the live list from nav-prices.js replaces it.
 let PRICES = [
+  ['2026-12', 644, 723, 387],
   ['2026-11', 639, 712, 365],
   ['2026-10', 605, 681, 356],
   ['2026-09', 604, 667, 351],
@@ -98,8 +99,17 @@ function paintVat() {
   show('vat-diff', huf(Math.abs(actual - flat)), ok);
 }
 
+// Trips are priced by the month they happened in, so open on this month (NAV publishes the next
+// month's price around the 20th; picking it by default would price this month's trips wrongly).
+const thisMonth = () => {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+};
 const fillMonths = () => {
+  const keep = $('km-month').value;
   $('km-month').innerHTML = PRICES.map(([m]) => `<option value="${m}">${m.slice(0, 4)}. ${MONTHS[Number(m.slice(5)) - 1]}</option>`).join('');
+  const now = thisMonth();
+  $('km-month').value = PRICES.some(([m]) => m === keep) ? keep : (PRICES.find(([m]) => m <= now) || PRICES[PRICES.length - 1])[0];
 };
 fillMonths();
 if (window.navPrices) {

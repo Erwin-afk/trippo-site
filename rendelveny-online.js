@@ -13,6 +13,7 @@
   // Printed fallback (petrol, diesel, LPG per litre; the protected price where one applied), newest
   // first. nav-prices.js replaces it with the live list.
   let PRICES = [
+    ['2026-12', 644, 723, 387],
     ['2026-11', 639, 712, 365],
     ['2026-10', 605, 681, 356],
     ['2026-09', 604, 667, 351],
@@ -64,10 +65,17 @@
     tripsBox.append(row);
   };
 
+  // Open on this month: trips are priced by their own month, and NAV publishes next month's price
+  // around the 20th.
+  const thisMonth = () => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+  };
   const fillMonths = () => {
     const keep = $('rv-month').value;
     $('rv-month').innerHTML = PRICES.map(([m]) => `<option value="${m}">${monthName(m)}</option>`).join('');
-    if (PRICES.some(([m]) => m === keep)) $('rv-month').value = keep;
+    const now = thisMonth();
+    $('rv-month').value = PRICES.some(([m]) => m === keep) ? keep : (PRICES.find(([m]) => m <= now) || PRICES[PRICES.length - 1])[0];
   };
 
   /** Everything the screen and the printout need, or the first problem to fix. */
@@ -83,8 +91,10 @@
       return { date: v('date'), time: v('time'), from: v('from'), to: v('to'), purpose: v('purpose'), kmText: v('km') };
     }).filter((t) => t.date || t.from || t.to || t.purpose || t.kmText);
     const bad = trips.find((t) => parse(t.kmText) === null);
+    const otherMonth = trips.find((t) => t.date && t.date.slice(0, 7) !== month);
     const problem = !ccm || ccm > 9999 ? 'Írd be a hengerűrtartalmat számmal, pl. 1598. A forgalmi engedélyben találod.'
       : bad ? 'Egy út km-je nem szám. Írd be így: 42 vagy 12,5.'
+      : otherMonth ? `Egy út dátuma (${otherMonth.date}) nem a kiválasztott hónapra esik. Minden út annak a hónapnak a NAV-árával számol, amikor történt: válaszd ki a hónapot, vagy javítsd a dátumot.`
       : !price ? 'Erre a hónapra ehhez az üzemanyaghoz még nincs NAV-ár. Válassz másik hónapot.'
       : null;
     // The log counts whole km, as the app does.
