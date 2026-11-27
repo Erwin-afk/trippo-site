@@ -422,3 +422,30 @@ main.landing { max-width: none; padding: 0; }
 .js .steps-home li.reveal.in .paper i { transform-origin: left; animation: scene-row .35s calc(.3s + var(--r) * .18s) ease-out both; }
 .js .steps-home li.reveal.in .paper-sum { animation: scene-fade .35s 1.1s ease-out both; }
 .js .steps-home li.reveal.in .sent { animation: scene-up .4s 1.5s cubic-bezier(.2, .7, .2, 1) both; }
+
+/* Seasonal touches (seasonal.js): each shows only in its own dates. */
+.season-strip { background: color-mix(in srgb, var(--accent) 12%, var(--card)); border-bottom: 1px solid color-mix(in srgb, var(--accent) 25%, var(--line)); }
+.season-strip-in { max-width: 1080px; margin: 0 auto; padding: 8px 8px 8px 16px; display: flex; align-items: center; gap: 8px; }
+.season-strip p { flex: 1; min-width: 0; margin: 0; font-size: 14px; line-height: 1.45; }
+.season-strip a { color: var(--accent); font-weight: 700; white-space: nowrap; }
+.season-close { flex: none; width: 44px; height: 44px; display: grid; place-items: center; border: 0; border-radius: 999px; background: none; color: var(--muted); cursor: pointer; }
+.season-close:hover { background: color-mix(in srgb, var(--accent) 12%, transparent); }
+.season-close:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.season-note { margin: 0 0 16px; padding: 12px 14px; border-radius: 12px; background: color-mix(in srgb, var(--accent) 10%, var(--card)); border: 1px solid color-mix(in srgb, var(--accent) 22%, var(--line)); font-size: 15px; line-height: 1.5; }
+.season-note-foot { font-size: 14px; }
+.hero-home.has-snow { position: relative; }
+.hero-home.has-snow > :not(.snow) { position: relative; z-index: 1; }
+.snow { --flake: #b4c2d1; position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 0; }
+@media (prefers-color-scheme: dark) { .snow { --flake: rgba(255, 255, 255, .55); } }
+.flake { position: absolute; top: -12px; left: var(--x); width: var(--size); height: var(--size); border-radius: 50%; background: var(--flake); opacity: .8; animation: season-fall var(--time) linear var(--delay) infinite; }
+@keyframes season-fall { to { transform: translate3d(var(--drift), 900px, 0); } }
+@media (prefers-reduced-motion: reduce) { .snow { display: none; } }
+.season-year { padding-top: 40px; padding-bottom: 8px; }
+.season-year-card { background: var(--card); border: 1px solid var(--line); border-radius: 20px; padding: 28px; }
+.season-year-card .lead { margin-bottom: 20px; }
+.season-year-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.season-year-list a { display: grid; gap: 4px; height: 100%; box-sizing: border-box; padding: 16px; border-radius: 14px; border: 1px solid var(--line); color: var(--text); text-decoration: none; }
+.season-year-list a:hover { border-color: var(--accent); }
+.season-year-list b { color: var(--accent); }
+.season-year-list span { color: var(--muted); font-size: 15px; line-height: 1.45; }
+@media (max-width: 760px) { .season-year-list { grid-template-columns: 1fr; } .season-year-card { padding: 20px; } }

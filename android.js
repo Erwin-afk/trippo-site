@@ -14,7 +14,9 @@
   const run = () => {
     document.querySelectorAll('a[href*="apps.apple.com"]').forEach((a) => {
       a.href = '/#hirlevel';
-      if (a.classList.contains('btn') || a.classList.contains('bar-cta') || a.classList.contains('sheet-cta')) a.textContent = 'Androidra is szólunk';
+      // The header button is short on purpose: the long text pushes the logo off a 320-pt screen.
+      if (a.classList.contains('bar-cta')) a.textContent = 'Szólj, ha kész';
+      else if (a.classList.contains('btn') || a.classList.contains('sheet-cta')) a.textContent = 'Androidra is szólunk';
     });
     const cta = document.querySelector('.hero-home .cta');
     if (cta && !document.querySelector('.android-note')) {
